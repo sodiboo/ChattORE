@@ -1,0 +1,6 @@
+name: ChattORE
+main: ChattORE
+version: 1.0
+author: ORE Development Group LLC Inc.
+depends:
+  - LuckPerms
