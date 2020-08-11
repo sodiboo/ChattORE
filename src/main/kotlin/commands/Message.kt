@@ -9,7 +9,7 @@ import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.*
 
-@CommandAlias("msg|message|vmsg|whisper|tell")
+@CommandAlias("msg|message|vmsg|vmessage|whisper|tell")
 @CommandPermission("chattore.message")
 class Message(
     private val messaging: Messaging,
@@ -18,24 +18,33 @@ class Message(
 ) : BaseCommand() {
 
     @Default
-    @Syntax("[player] [message]")
+    @Syntax("[target] <message>")
     @CommandCompletion("@players")
-    fun default(player: ProxiedPlayer, args: Array<String>) {
-        if (args.isEmpty()) throw ChattoreException("You have to have something &oto&c send to someone!")
-        val target = proxy.getPlayer(args[0]) ?: throw ChattoreException("That user doesn't exist!")
-        if (args.drop(1).isEmpty()) throw ChattoreException("Can't have an empty private message!")
-        player.sendMessage(
-            *messaging.format.message_sent.formatGlobal(
-                recipient = target.displayName,
-                message = args.drop(1).joinToString(" ")
-            )
-        )
-        target.sendMessage(
-            *messaging.format.message_received.formatGlobal(
-                sender = player.displayName,
-                message = args.drop(1).joinToString(" ")
-            )
-        )
-        replyMap[target.uniqueId] = player.uniqueId
+    fun default(player: ProxiedPlayer, target: String, args: Array<String>) {
+        val targetPlayer = proxy.getPlayer(target) ?: throw ChattoreException("That user doesn't exist!")
+        sendMessage(replyMap, messaging, player, targetPlayer, args)
     }
+}
+
+// I don't like putting this here but eggsdee we'll figure out a better place later
+fun sendMessage(
+    replyMap: MutableMap<UUID, UUID>,
+    messaging: Messaging,
+    player: ProxiedPlayer,
+    targetPlayer: ProxiedPlayer,
+    args: Array<String>
+) {
+    player.sendMessage(
+        *messaging.format.message_sent.formatGlobal(
+            recipient = targetPlayer.displayName,
+            message = args.joinToString(" ")
+        )
+    )
+    targetPlayer.sendMessage(
+        *messaging.format.message_received.formatGlobal(
+            sender = player.displayName,
+            message = args.joinToString(" ")
+        )
+    )
+    replyMap[targetPlayer.uniqueId] = player.uniqueId
 }

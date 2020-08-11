@@ -6,7 +6,6 @@ import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.CommandAlias
 import co.aikar.commands.annotation.CommandPermission
 import co.aikar.commands.annotation.Default
-import formatGlobal
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.*
@@ -28,18 +27,6 @@ class Reply(
         ) ?: throw ChattoreException(
             "The person you are trying to reply to is no longer online!"
         )
-        player.sendMessage(
-            *messaging.format.message_sent.formatGlobal(
-                recipient = target.displayName,
-                message = args.joinToString(" ")
-            )
-        )
-        target.sendMessage(
-            *messaging.format.message_received.formatGlobal(
-                sender = player.displayName,
-                message = args.joinToString(" ")
-            )
-        )
-        replyMap[target.uniqueId] = player.uniqueId
+        sendMessage(replyMap, messaging, player, target, args)
     }
 }
