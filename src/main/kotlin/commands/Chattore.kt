@@ -8,7 +8,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer
 
 @CommandAlias("chattore")
 @CommandPermission("chattore.manage")
-class Chattore(val chattORE: ChattORE) : BaseCommand() {
+class Chattore(private val chattORE: ChattORE) : BaseCommand() {
     @Default @CatchUnknown
     @Subcommand("version")
     fun version(player: ProxiedPlayer) {
