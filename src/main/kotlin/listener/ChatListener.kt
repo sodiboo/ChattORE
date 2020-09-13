@@ -1,6 +1,7 @@
 package listener
 
 import ChattORE
+import entity.ChattORESpec
 import formatGlobal
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.event.ChatEvent
@@ -9,7 +10,7 @@ import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 
 class ChatListener(
-    val chattORE: ChattORE
+    private val chattORE: ChattORE
 ) : Listener {
     @EventHandler
     fun onTabComplete(event: TabCompleteEvent) {
@@ -29,7 +30,7 @@ class ChatListener(
     fun onChatEvent(event: ChatEvent) {
         if (event.isCommand || event.isProxyCommand) {
             chattORE.sendPrivileged(
-                *chattORE.messaging.format.command_spy.formatGlobal(
+                *chattORE.config[ChattORESpec.format.commandSpy].formatGlobal(
                     sender = (event.sender as ProxiedPlayer).displayName,
                     message = event.message,
                     preserveRawMessage = true

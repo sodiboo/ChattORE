@@ -1,9 +1,10 @@
 package commands
 
 import ChattoreException
-import Messaging
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
+import com.uchuhimo.konf.Config
+import entity.ChattORESpec
 import formatGlobal
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
@@ -11,7 +12,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer
 @CommandAlias("me")
 @CommandPermission("chattore.me")
 class Me(
-    private val messaging: Messaging,
+    private val config: Config,
     private val proxy: ProxyServer
 ) : BaseCommand() {
 
@@ -20,7 +21,7 @@ class Me(
     fun default(player: ProxiedPlayer, args: Array<String>) {
         if (args.isEmpty()) throw ChattoreException("You have to &ohave&c a thonk first!")
         proxy.broadcast(
-            *messaging.format.me.formatGlobal(
+            *config[ChattORESpec.format.me].formatGlobal(
                 sender = player.displayName,
                 message = args.joinToString(" ")
             )

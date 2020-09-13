@@ -24,7 +24,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(group = "com.uchuhimo", name = "konf", version = "0.22.1")
-    implementation(group = "net.md-5", name = "bungeecord-api", version = "1.16-R0.2-SNAPSHOT")
+    implementation(group = "net.md-5", name = "bungeecord-api", version = "1.16-R0.4-SNAPSHOT")
     implementation(group = "net.luckperms", name = "api", version = "5.1")
     implementation(group = "net.kyori", name = "adventure-api", version = "4.0.0-SNAPSHOT")
     implementation(group = "net.kyori", name = "adventure-text-serializer-legacy", version = "4.0.0-SNAPSHOT")

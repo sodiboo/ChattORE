@@ -1,9 +1,6 @@
-import entity.FormatConfig
 import net.kyori.adventure.text.serializer.bungeecord.BungeeCordComponentSerializer
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.md_5.bungee.api.chat.BaseComponent
-
-class Messaging(var format: FormatConfig)
 
 fun String.componentize(
     message: String,

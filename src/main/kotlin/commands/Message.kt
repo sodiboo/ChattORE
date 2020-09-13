@@ -1,9 +1,10 @@
 package commands
 
 import ChattoreException
-import Messaging
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
+import com.uchuhimo.konf.Config
+import entity.ChattORESpec
 import formatGlobal
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
@@ -12,7 +13,7 @@ import java.util.*
 @CommandAlias("msg|message|vmsg|vmessage|whisper|tell")
 @CommandPermission("chattore.message")
 class Message(
-    private val messaging: Messaging,
+    private val config: Config,
     private val proxy: ProxyServer,
     private val replyMap: MutableMap<UUID, UUID>
 ) : BaseCommand() {
@@ -22,26 +23,26 @@ class Message(
     @CommandCompletion("@players")
     fun default(player: ProxiedPlayer, target: String, args: Array<String>) {
         val targetPlayer = proxy.getPlayer(target) ?: throw ChattoreException("That user doesn't exist!")
-        sendMessage(replyMap, messaging, player, targetPlayer, args)
+        sendMessage(replyMap, config, player, targetPlayer, args)
     }
 }
 
 // I don't like putting this here but eggsdee we'll figure out a better place later
 fun sendMessage(
     replyMap: MutableMap<UUID, UUID>,
-    messaging: Messaging,
+    config: Config,
     player: ProxiedPlayer,
     targetPlayer: ProxiedPlayer,
     args: Array<String>
 ) {
     player.sendMessage(
-        *messaging.format.message_sent.formatGlobal(
+        *config[ChattORESpec.format.me].formatGlobal(
             recipient = targetPlayer.displayName,
             message = args.joinToString(" ")
         )
     )
     targetPlayer.sendMessage(
-        *messaging.format.message_received.formatGlobal(
+        *config[ChattORESpec.format.me].formatGlobal(
             sender = player.displayName,
             message = args.joinToString(" ")
         )

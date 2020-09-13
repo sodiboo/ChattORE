@@ -18,17 +18,16 @@ import java.util.logging.Level
 
 class ChattORE : Plugin() {
     lateinit var luckPerms: LuckPerms
-    lateinit var messaging: Messaging
+    lateinit var config: Config
     val replyMap: MutableMap<UUID, UUID> = hashMapOf()
     override fun onEnable() {
-        val config = loadConfig()
-        messaging = Messaging(config[ChattORESpec.chattore].format)
+        config = loadConfig()
         BungeeCommandManager(this).apply {
             registerCommand(Chattore(this@ChattORE))
             registerCommand(HelpOp(this@ChattORE))
-            registerCommand(Me(messaging, this.plugin.proxy))
-            registerCommand(Message(messaging, this.plugin.proxy, replyMap))
-            registerCommand(Reply(messaging, this.plugin.proxy, replyMap))
+            registerCommand(Me(config, this.plugin.proxy))
+            registerCommand(Message(config, this.plugin.proxy, replyMap))
+            registerCommand(Reply(config, this.plugin.proxy, replyMap))
             setDefaultExceptionHandler(::handleCommandException, false)
         }
         luckPerms = LuckPermsProvider.get()
@@ -44,21 +43,16 @@ class ChattORE : Plugin() {
             dataFolder.mkdir()
         }
         val configFile = File(dataFolder, "config.yml")
-        if (!configFile.exists()) {
+        val loadedConfig = if (!configFile.exists()) {
             logger.log(Level.INFO, "No config file found, generating from default config.yml")
             configFile.createNewFile()
-            Config { addSpec(ChattORESpec) }.from.yaml.inputStream(
-                getResourceAsStream("config.yml")
-            ).toYaml.toFile(
-                configFile
-            )
-        }
-        if (reloaded) {
-            logger.log(Level.INFO, "Reloaded config.yml")
+            Config { addSpec(ChattORESpec) }
         } else {
-            logger.log(Level.INFO, "Loaded config.yml")
+            Config { addSpec(ChattORESpec) }.from.yaml.watchFile(configFile)
         }
-        return Config { addSpec(ChattORESpec) }.from.yaml.watchFile(configFile)
+        loadedConfig.toYaml.toFile(configFile)
+        logger.log(Level.INFO, "${if (reloaded) "Rel" else "L"}oaded config.yml")
+        return loadedConfig
     }
 
     fun broadcastChatMessage(user: UUID, message: String) {
@@ -67,7 +61,7 @@ class ChattORE : Plugin() {
         val username = this.proxy.getPlayer(user).displayName
         val prefix = luckUser.cachedData.metaData.prefix ?: return
         this.proxy.broadcast(
-            *messaging.format.global.formatGlobal(
+            *config[ChattORESpec.format.global].formatGlobal(
                 prefix = prefix,
                 sender = username,
                 message = message
@@ -96,12 +90,12 @@ class ChattORE : Plugin() {
     ) : Boolean {
         val exception = throwable as? ChattoreException ?: return false
         val message = exception.message ?: "Something went wrong!"
-        sender.sendMessage(messaging.format.error.replace("%message%", message))
+        sender.sendMessage(config[ChattORESpec.format.error].replace("%message%", message))
         return true
     }
 
     fun reload() {
-        messaging.format = loadConfig(reloaded = true)[ChattORESpec.chattore].format
+
     }
 }
 
