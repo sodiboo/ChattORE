@@ -4,9 +4,18 @@ import com.uchuhimo.konf.ConfigSpec
 
 object ChattORESpec : ConfigSpec("") {
     object discord : ConfigSpec() {
-        val botToken by optional("nou")
+        val networkToken by optional("nouNetwork")
+        val ircToken by optional("nouIrc")
+        val playingMessage by optional("on the ORE Network")
         val serverId by optional(1234)
         val channelId by optional(1234)
+        val serverTokens by optional(
+            mapOf(
+                "serverOne" to "token1",
+                "serverTwo" to "token2",
+                "serverThree" to "token3"
+            )
+        )
     }
     object irc : ConfigSpec() {
         val name by optional("ORENetwork")

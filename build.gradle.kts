@@ -19,6 +19,9 @@ repositories {
         name = "aikar"
         url = uri("https://repo.aikar.co/content/groups/aikar/")
     }
+    maven {
+        url = uri("https://jitpack.io")
+    }
 }
 
 dependencies {
@@ -30,6 +33,7 @@ dependencies {
     implementation(group = "net.kyori", name = "adventure-text-serializer-legacy", version = "4.0.0-SNAPSHOT")
     implementation(group = "net.kyori", name = "adventure-text-serializer-bungeecord", version = "4.0.0-SNAPSHOT")
     implementation(group = "co.aikar", name = "acf-bungee", version = "0.5.0-SNAPSHOT")
+    implementation(group = "org.javacord", name = "javacord", version = "3.0.6")
 }
 
 tasks.withType<KotlinCompile> {

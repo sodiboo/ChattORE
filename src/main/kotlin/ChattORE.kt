@@ -12,6 +12,8 @@ import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
 import net.md_5.bungee.api.chat.BaseComponent
 import net.md_5.bungee.api.plugin.Plugin
+import org.javacord.api.DiscordApi
+import org.javacord.api.DiscordApiBuilder
 import java.io.File
 import java.util.*
 import java.util.logging.Level
@@ -19,7 +21,8 @@ import java.util.logging.Level
 class ChattORE : Plugin() {
     lateinit var luckPerms: LuckPerms
     lateinit var config: Config
-    val replyMap: MutableMap<UUID, UUID> = hashMapOf()
+    private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
+    private var discordMap: Map<String, DiscordApi> = hashMapOf()
     override fun onEnable() {
         config = loadConfig()
         BungeeCommandManager(this).apply {
@@ -30,11 +33,34 @@ class ChattORE : Plugin() {
             registerCommand(Reply(config, this.plugin.proxy, replyMap))
             setDefaultExceptionHandler(::handleCommandException, false)
         }
+        discordMap = loadDiscordTokens()
         luckPerms = LuckPermsProvider.get()
         this.proxy.pluginManager.registerListener(this, ChatListener(this))
     }
 
     override fun onDisable() {
+    }
+
+    private fun loadDiscordTokens() : Map<String, DiscordApi> {
+        val availableServers = this.proxy.servers.map { it.key.toLowerCase() } .sorted()
+        val configServers = config[ChattORESpec.discord.serverTokens].map { it.key.toLowerCase() } .sorted()
+        if (availableServers != configServers) {
+            logger.log(Level.SEVERE,
+                """
+                    Supplied server keys in Discord configuration section does not match available servers:
+                    Available servers: ${availableServers.joinToString()}
+                    Configured servers: ${configServers.joinToString()}
+                """.trimIndent()
+            )
+            throw Exception("Invalid server Discord token key(s) provided")
+        } else {
+            return config[ChattORESpec.discord.serverTokens].mapValues { (_, token) ->
+                DiscordApiBuilder()
+                    .setToken(token)
+                    .login()
+                    .join()
+            }
+        }
     }
 
     private fun loadConfig(reloaded: Boolean = false): Config {
