@@ -36,13 +36,13 @@ fun sendMessage(
     args: Array<String>
 ) {
     player.sendMessage(
-        *config[ChattORESpec.format.me].formatGlobal(
+        *config[ChattORESpec.format.messageSent].formatGlobal(
             recipient = targetPlayer.displayName,
             message = args.joinToString(" ")
         )
     )
     targetPlayer.sendMessage(
-        *config[ChattORESpec.format.me].formatGlobal(
+        *config[ChattORESpec.format.messageReceived].formatGlobal(
             sender = player.displayName,
             message = args.joinToString(" ")
         )

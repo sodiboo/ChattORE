@@ -91,8 +91,6 @@ class ChattORE : Plugin() {
                 prefix = prefix,
                 sender = username,
                 message = message
-                    .replace(Regex("""\s.*"""), " ")
-                    .trim()
             )
         )
     }
