@@ -45,21 +45,19 @@ class ChattORE : Plugin() {
         val availableServers = this.proxy.servers.map { it.key.toLowerCase() } .sorted()
         val configServers = config[ChattORESpec.discord.serverTokens].map { it.key.toLowerCase() } .sorted()
         if (availableServers != configServers) {
-            logger.log(Level.SEVERE,
+            logger.log(Level.WARNING,
                 """
                     Supplied server keys in Discord configuration section does not match available servers:
                     Available servers: ${availableServers.joinToString()}
                     Configured servers: ${configServers.joinToString()}
                 """.trimIndent()
             )
-            throw Exception("Invalid server Discord token key(s) provided")
-        } else {
-            return config[ChattORESpec.discord.serverTokens].mapValues { (_, token) ->
-                DiscordApiBuilder()
-                    .setToken(token)
-                    .login()
-                    .join()
-            }
+        }
+        return config[ChattORESpec.discord.serverTokens].mapValues { (_, token) ->
+            DiscordApiBuilder()
+                .setToken(token)
+                .login()
+                .join()
         }
     }
 
