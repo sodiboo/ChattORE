@@ -1,29 +1,37 @@
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.TextComponent
-import net.kyori.adventure.text.serializer.bungeecord.BungeeCordComponentSerializer
+import net.kyori.adventure.text.TextReplacementConfig
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.md_5.bungee.api.chat.BaseComponent
+
+fun fixHexFormatting(str: String): String = str.replace(Regex("#([0-9a-f]{6})")) { "&${it.groupValues.first()}" }
 
 fun String.componentize(
     message: String,
     preserveRawMessage: Boolean = false
-) : Component =
+): Component =
     LegacyComponentSerializer.builder()
         .character('&')
         .hexCharacter('#')
         .extractUrls()
         .build()
         .deserialize(this)
-        .replaceText("""%message%""".toPattern()) {
-            if (preserveRawMessage) {
-                TextComponent.of(message).toBuilder()
-            } else {
-                LegacyComponentSerializer
-                    .legacy('&')
-                    .deserialize(message.replace(Regex("#([0-9a-f]{6})")) { "&${it.groupValues.first()}" })
-                    .toBuilder()
-            }
-        }
+        .replaceText(
+            TextReplacementConfig
+                .builder()
+                .matchLiteral("""%message%""")
+                .replacement(
+                    if (preserveRawMessage) {
+                        PlainTextComponentSerializer.plainText().deserialize(message)
+                    } else {
+                        LegacyComponentSerializer
+                            .legacy('&')
+                            .deserialize(fixHexFormatting(message))
+                    }
+                )
+                .build()
+        )
 
 
 fun String.formatGlobal(
@@ -33,9 +41,9 @@ fun String.formatGlobal(
     message: String = "",
     preserveRawMessage: Boolean = false
 ) : Array<BaseComponent> =
-    BungeeCordComponentSerializer.get().serialize(
+    BungeeComponentSerializer.get().serialize(
         this
-            .replaceFirst("%prefix%", prefix)
+            .replaceFirst("%prefix%", fixHexFormatting(prefix))
             .replaceFirst("%sender%", sender)
             .replaceFirst("%recipient%", recipient)
             .componentize(
