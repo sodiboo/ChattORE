@@ -8,6 +8,7 @@ import com.uchuhimo.konf.source.yaml.toYaml
 import commands.*
 import entity.ChattORESpec
 import listener.ChatListener
+import listener.DiscordListener
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
@@ -16,7 +17,7 @@ import net.md_5.bungee.api.plugin.Plugin
 import org.javacord.api.DiscordApi
 import org.javacord.api.DiscordApiBuilder
 import org.javacord.api.entity.channel.Channel
-import org.javacord.api.entity.channel.ChannelType
+import org.javacord.api.entity.channel.TextChannel
 import org.javacord.api.entity.message.MessageBuilder
 import java.io.File
 import java.util.*
@@ -39,6 +40,8 @@ class ChattORE : Plugin() {
         }
         discordMap = loadDiscordTokens()
         discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
+        discordMap.values.firstOrNull()!!.addListener(DiscordListener(this))
+        logger.info("added discord listener to " + discordMap.values.firstOrNull());
         luckPerms = LuckPermsProvider.get()
         this.proxy.pluginManager.registerListener(this, ChatListener(this))
     }
@@ -101,17 +104,26 @@ class ChattORE : Plugin() {
 
         val discordApi = discordMap[originServer] ?: return;
         val channel: Channel? = discordApi.getChannelById(config[ChattORESpec.discord.channelId]).orElse(null);
-        if (channel != null && channel.type == ChannelType.SERVER_TEXT_CHANNEL) {
+        if (channel != null && channel is TextChannel) {
             val prefix = PlainTextComponentSerializer.plainText().serialize(prefix.componentize());
-            val content = config[ChattORESpec.format.discord]
+            val content = config[ChattORESpec.discord.format]
                 .replace("%prefix%", prefix)
                 .replace("%sender%", name)
                 .replace("%message%", message)
             val message = MessageBuilder().setContent(content)
-            message.send(channel.asTextChannel().get())
+            message.send(channel)
         } else {
             logger.severe("Could not get specified discord channel");
         }
+    }
+
+    fun broadcastDiscordMessage(sender: String, message: String) {
+        this.proxy.broadcast(
+            *config[ChattORESpec.format.discord].formatGlobal(
+                sender = sender,
+                message = message
+            )
+        )
     }
 
     fun sendPrivileged(vararg components: BaseComponent, exclude: UUID = UUID.randomUUID()) {
