@@ -40,7 +40,7 @@ class ChatListener(
             if (event.sender !is ProxiedPlayer) return
             event.isCancelled = true
 
-            val pp = event.sender as ProxiedPlayer;
+            val pp = event.sender as ProxiedPlayer
             chattORE.broadcastChatMessage(pp.server.info.name, pp.uniqueId, event.message)
         }
     }

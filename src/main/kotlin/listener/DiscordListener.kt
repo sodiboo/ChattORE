@@ -1,4 +1,4 @@
-package listener;
+package listener
 
 import ChattORE
 import org.javacord.api.event.message.MessageCreateEvent
