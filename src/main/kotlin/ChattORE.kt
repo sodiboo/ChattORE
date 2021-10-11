@@ -40,8 +40,7 @@ class ChattORE : Plugin() {
         }
         discordMap = loadDiscordTokens()
         discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
-        discordMap.values.firstOrNull()!!.addListener(DiscordListener(this))
-        logger.info("added discord listener to " + discordMap.values.firstOrNull());
+        discordMap.values.firstOrNull()?.addListener(DiscordListener(this))
         luckPerms = LuckPermsProvider.get()
         this.proxy.pluginManager.registerListener(this, ChatListener(this))
     }
