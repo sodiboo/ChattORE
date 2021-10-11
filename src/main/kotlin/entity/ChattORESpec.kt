@@ -7,8 +7,7 @@ object ChattORESpec : ConfigSpec("") {
         val networkToken by optional("nouNetwork")
         val ircToken by optional("nouIrc")
         val playingMessage by optional("on the ORE Network")
-        val serverId by optional(1234)
-        val channelId by optional(1234)
+        val channelId by optional(1234L)
         val serverTokens by optional(
             mapOf(
                 "serverOne" to "token1",
@@ -25,6 +24,7 @@ object ChattORESpec : ConfigSpec("") {
     }
     object format : ConfigSpec() {
         val global by optional("%prefix% &7| &e%sender%&7: &r%message%")
+        val discord by optional("`%prefix% **%sender%**: %message%")
         val messageReceived by optional("&6[&c%sender% &6->&c me&6]&r %message%")
         val messageSent by optional("&6[&cme &6->&c %recipient%&6]&r %message%")
         val me by optional("* &o%sender% %message% &r*")

@@ -8,12 +8,16 @@ import com.uchuhimo.konf.source.yaml.toYaml
 import commands.*
 import entity.ChattORESpec
 import listener.ChatListener
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
 import net.md_5.bungee.api.chat.BaseComponent
 import net.md_5.bungee.api.plugin.Plugin
 import org.javacord.api.DiscordApi
 import org.javacord.api.DiscordApiBuilder
+import org.javacord.api.entity.channel.Channel
+import org.javacord.api.entity.channel.ChannelType
+import org.javacord.api.entity.message.MessageBuilder
 import java.io.File
 import java.util.*
 import java.util.logging.Level
@@ -34,18 +38,21 @@ class ChattORE : Plugin() {
             setDefaultExceptionHandler(::handleCommandException, false)
         }
         discordMap = loadDiscordTokens()
+        discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
         luckPerms = LuckPermsProvider.get()
         this.proxy.pluginManager.registerListener(this, ChatListener(this))
     }
 
     override fun onDisable() {
+        discordMap.forEach { (_, discordApi) -> discordApi.disconnect() }
     }
 
-    private fun loadDiscordTokens() : Map<String, DiscordApi> {
-        val availableServers = this.proxy.servers.map { it.key.toLowerCase() } .sorted()
-        val configServers = config[ChattORESpec.discord.serverTokens].map { it.key.toLowerCase() } .sorted()
+    private fun loadDiscordTokens(): Map<String, DiscordApi> {
+        val availableServers = this.proxy.servers.map { it.key.toLowerCase() }.sorted()
+        val configServers = config[ChattORESpec.discord.serverTokens].map { it.key.toLowerCase() }.sorted()
         if (availableServers != configServers) {
-            logger.log(Level.WARNING,
+            logger.log(
+                Level.WARNING,
                 """
                     Supplied server keys in Discord configuration section does not match available servers:
                     Available servers: ${availableServers.joinToString()}
@@ -53,7 +60,7 @@ class ChattORE : Plugin() {
                 """.trimIndent()
             )
         }
-        return config[ChattORESpec.discord.serverTokens].mapValues { (_, token) ->
+        return config[ChattORESpec.discord.serverTokens].mapValues { (name, token) ->
             DiscordApiBuilder()
                 .setToken(token)
                 .login()
@@ -79,24 +86,38 @@ class ChattORE : Plugin() {
         return loadedConfig
     }
 
-    fun broadcastChatMessage(user: UUID, message: String) {
+    fun broadcastChatMessage(originServer: String, user: UUID, message: String) {
         val userManager = luckPerms.userManager
         val luckUser = userManager.getUser(user) ?: return
-        val username = this.proxy.getPlayer(user).displayName
+        val name = this.proxy.getPlayer(user).displayName
         val prefix = luckUser.cachedData.metaData.prefix ?: return
         this.proxy.broadcast(
             *config[ChattORESpec.format.global].formatGlobal(
                 prefix = prefix,
-                sender = username,
+                sender = name,
                 message = message
             )
         )
+
+        val discordApi = discordMap[originServer] ?: return;
+        val channel: Channel? = discordApi.getChannelById(config[ChattORESpec.discord.channelId]).orElse(null);
+        if (channel != null && channel.type == ChannelType.SERVER_TEXT_CHANNEL) {
+            val prefix = PlainTextComponentSerializer.plainText().serialize(prefix.componentize());
+            val content = config[ChattORESpec.format.discord]
+                .replace("%prefix%", prefix)
+                .replace("%sender%", name)
+                .replace("%message%", message)
+            val message = MessageBuilder().setContent(content)
+            message.send(channel.asTextChannel().get())
+        } else {
+            logger.severe("Could not get specified discord channel");
+        }
     }
 
     fun sendPrivileged(vararg components: BaseComponent, exclude: UUID = UUID.randomUUID()) {
         val privileged = proxy.players.filter {
             it.hasPermission("chattore.privileged")
-                && (it.uniqueId != exclude)
+                    && (it.uniqueId != exclude)
         }
         for (user in privileged) {
             user.sendMessage(*components)
@@ -109,7 +130,7 @@ class ChattORE : Plugin() {
         sender: CommandIssuer,
         args: List<String>,
         throwable: Throwable
-    ) : Boolean {
+    ): Boolean {
         val exception = throwable as? ChattoreException ?: return false
         val message = exception.message ?: "Something went wrong!"
         sender.sendMessage(config[ChattORESpec.format.error].replace("%message%", message))

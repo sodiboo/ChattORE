@@ -39,7 +39,9 @@ class ChatListener(
         } else {
             if (event.sender !is ProxiedPlayer) return
             event.isCancelled = true
-            chattORE.broadcastChatMessage((event.sender as ProxiedPlayer).uniqueId, event.message)
+
+            val pp = event.sender as ProxiedPlayer;
+            chattORE.broadcastChatMessage(pp.server.info.name, pp.uniqueId, event.message)
         }
     }
 }

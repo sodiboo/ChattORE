@@ -7,31 +7,13 @@ import net.md_5.bungee.api.chat.BaseComponent
 
 fun fixHexFormatting(str: String): String = str.replace(Regex("#([0-9a-f]{6})")) { "&${it.groupValues.first()}" }
 
-fun String.componentize(
-    message: String,
-    preserveRawMessage: Boolean = false
-): Component =
+fun String.componentize(): Component =
     LegacyComponentSerializer.builder()
         .character('&')
         .hexCharacter('#')
         .extractUrls()
         .build()
-        .deserialize(this)
-        .replaceText(
-            TextReplacementConfig
-                .builder()
-                .matchLiteral("""%message%""")
-                .replacement(
-                    if (preserveRawMessage) {
-                        PlainTextComponentSerializer.plainText().deserialize(message)
-                    } else {
-                        LegacyComponentSerializer
-                            .legacy('&')
-                            .deserialize(fixHexFormatting(message))
-                    }
-                )
-                .build()
-        )
+        .deserialize(fixHexFormatting(this))
 
 
 fun String.formatGlobal(
@@ -40,17 +22,31 @@ fun String.formatGlobal(
     recipient: String = "",
     message: String = "",
     preserveRawMessage: Boolean = false
-) : Array<BaseComponent> =
-    BungeeComponentSerializer.get().serialize(
+) : Array<BaseComponent> {
+    val message = message
+        .replace(Regex("""\s+"""), " ")
+        .trim()
+    return BungeeComponentSerializer.get().serialize(
         this
-            .replaceFirst("%prefix%", fixHexFormatting(prefix))
+            .replaceFirst("%prefix%", prefix)
             .replaceFirst("%sender%", sender)
             .replaceFirst("%recipient%", recipient)
-            .componentize(
-                message
-                    .replace(Regex("""\s+"""), " ")
-                    .trim(),
-                preserveRawMessage
+            .componentize()
+            .replaceText(
+                TextReplacementConfig
+                    .builder()
+                    .matchLiteral("""%message%""")
+                    .replacement(
+                        if (preserveRawMessage) {
+                            PlainTextComponentSerializer.plainText().deserialize(message)
+                        } else {
+                            LegacyComponentSerializer
+                                .legacy('&')
+                                .deserialize(fixHexFormatting(message))
+                        }
+                    )
+                    .build()
             )
     )
+}
 
