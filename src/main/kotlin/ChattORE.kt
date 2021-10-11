@@ -102,18 +102,18 @@ class ChattORE : Plugin() {
         )
 
         val discordApi = discordMap[originServer] ?: return;
-        val channel: Channel? = discordApi.getChannelById(config[ChattORESpec.discord.channelId]).orElse(null);
-        if (channel != null && channel is TextChannel) {
-            val prefix = PlainTextComponentSerializer.plainText().serialize(prefix.componentize());
-            val content = config[ChattORESpec.discord.format]
-                .replace("%prefix%", prefix)
-                .replace("%sender%", name)
-                .replace("%message%", message)
-            val message = MessageBuilder().setContent(content)
-            message.send(channel)
-        } else {
-            logger.severe("Could not get specified discord channel");
+        val channel = discordApi.getChannelById(config[ChattORESpec.discord.channelId]).orElse(null) as? TextChannel ?: run {
+            logger.severe("Could not get specified discord channel")
+            return
         }
+
+        val plainPrefix = PlainTextComponentSerializer.plainText().serialize(prefix.componentize());
+        val content = config[ChattORESpec.discord.format]
+            .replace("%prefix%", plainPrefix)
+            .replace("%sender%", name)
+            .replace("%message%", message)
+        val discordMessage = MessageBuilder().setContent(content)
+        discordMessage.send(channel)
     }
 
     fun broadcastDiscordMessage(sender: String, message: String) {
