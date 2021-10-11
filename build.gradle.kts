@@ -34,7 +34,7 @@ dependencies {
     implementation(group = "net.kyori", name = "adventure-text-serializer-plain", version = "4.9.2")
     implementation(group = "net.kyori", name = "adventure-platform-bungeecord", version = "4.0.0")
     implementation(group = "co.aikar", name = "acf-bungee", version = "0.5.0-SNAPSHOT")
-    implementation(group = "org.javacord", name = "javacord", version = "3.0.6")
+    implementation(group = "org.javacord", name = "javacord", version = "3.3.2")
 }
 
 tasks.withType<KotlinCompile> {
