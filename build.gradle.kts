@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("com.github.johnrengelman.shadow") version "2.0.4"
     id("org.jetbrains.kotlin.jvm") version "1.3.72"
+    id("org.jetbrains.kotlin.kapt") version "1.6.10"
 }
 
 group = ""
@@ -38,7 +39,7 @@ dependencies {
     implementation(group = "co.aikar", name = "acf-velocity", version = "0.5.1-SNAPSHOT")
     implementation(group = "org.javacord", name = "javacord", version = "3.3.2")
     implementation(group = "com.velocitypowered", name = "velocity-api", version = "3.0.1")
-    annotationProcessor(group = "com.velocitypowered", name = "velocity-api", version = "3.0.1")
+    kapt(group = "com.velocitypowered", name = "velocity-api", version = "3.0.1")
 }
 
 tasks.withType<KotlinCompile> {
