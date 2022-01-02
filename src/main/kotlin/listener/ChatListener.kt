@@ -30,16 +30,13 @@ class ChatListener(
 
     @Subscribe
     fun onCommandEvent(event: CommandExecuteEvent) {
-        val commandSource = event.commandSource
-        if (commandSource is Player) {
-            chattORE.sendPrivileged(
-                chattORE.config[ChattORESpec.format.commandSpy].formatGlobal(
-                    sender = commandSource.username,
-                    message = event.command,
-                    preserveRawMessage = true
-                )
+        val commandSource = event.commandSource as? Player ?: return
+        chattORE.sendPrivileged(
+            chattORE.config[ChattORESpec.format.commandSpy].formatGlobal(
+                sender = commandSource.username,
+                message = event.command,
+                preserveRawMessage = true
             )
-        }
-
+        )
     }
 }
