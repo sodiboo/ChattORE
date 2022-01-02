@@ -68,8 +68,8 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     }
 
     private fun loadDiscordTokens(): Map<String, DiscordApi> {
-        val availableServers = proxy.allServers.map { it.serverInfo.name.toLowerCase() }.sorted()
-        val configServers = config[ChattORESpec.discord.serverTokens].map { it.key.toLowerCase() }.sorted()
+        val availableServers = proxy.allServers.map { it.serverInfo.name.lowercase() }.sorted()
+        val configServers = config[ChattORESpec.discord.serverTokens].map { it.key.lowercase() }.sorted()
         if (availableServers != configServers) {
             logger.warn(
                 """
