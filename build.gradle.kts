@@ -31,15 +31,14 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(group = "com.uchuhimo", name = "konf", version = "0.22.1")
-    implementation(group = "com.velocitypowered", name = "velocity-api", version = "3.0.1")
     implementation(group = "net.luckperms", name = "api", version = "5.1")
     implementation(group = "net.kyori", name = "adventure-api", version = "4.9.2")
     implementation(group = "net.kyori", name = "adventure-text-serializer-legacy", version = "4.9.2")
     implementation(group = "net.kyori", name = "adventure-text-serializer-plain", version = "4.9.2")
-    implementation(group = "net.kyori", name = "adventure-platform-bungeecord", version = "4.0.0")
     implementation(group = "co.aikar", name = "acf-velocity", version = "0.5.1-SNAPSHOT")
     implementation(group = "org.javacord", name = "javacord", version = "3.3.2")
-    implementation(group = "org.javacord", name = "javacord", version = "3.3.2")
+    implementation(group = "com.velocitypowered", name = "velocity-api", version = "3.0.1")
+    annotationProcessor(group = "com.velocitypowered", name = "velocity-api", version = "3.0.1")
 }
 
 tasks.withType<KotlinCompile> {

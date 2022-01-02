@@ -7,6 +7,7 @@ import com.uchuhimo.konf.source.yaml
 import com.uchuhimo.konf.source.yaml.toYaml
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
+import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
@@ -35,7 +36,8 @@ private const val VERSION = "0.1.0-SNAPSHOT"
     version = VERSION,
     url = "https://openredstone.org",
     description = "Because we want to have a chat system that actually wOREks for us.",
-    authors = ["Nickster258", "PaukkuPalikka", "StackDoubleFlow"]
+    authors = ["Nickster258", "PaukkuPalikka", "StackDoubleFlow"],
+    dependencies = [Dependency(id = "luckperms")]
 )
 class ChattORE(val proxy: ProxyServer, val logger: Logger, @DataDirectory dataFolder: Path) {
     lateinit var luckPerms: LuckPerms
