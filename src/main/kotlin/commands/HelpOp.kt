@@ -3,10 +3,13 @@ package commands
 import ChattORE
 import ChattoreException
 import co.aikar.commands.BaseCommand
-import co.aikar.commands.annotation.*
+import co.aikar.commands.annotation.CommandAlias
+import co.aikar.commands.annotation.CommandPermission
+import co.aikar.commands.annotation.Default
+import co.aikar.commands.annotation.Syntax
+import com.velocitypowered.api.proxy.Player
 import entity.ChattORESpec
 import formatGlobal
-import net.md_5.bungee.api.connection.ProxiedPlayer
 
 @CommandAlias("helpop|ac")
 @CommandPermission("chattore.helpop")
@@ -16,15 +19,15 @@ class HelpOp(
 
     @Default
     @Syntax("[message]")
-    fun default(player: ProxiedPlayer, args: Array<String>) {
+    fun default(player: Player, args: Array<String>) {
         if (args.isEmpty()) throw ChattoreException("You have to have a problem first!") // : )
         val message = chattORE.config[ChattORESpec.format.help].formatGlobal(
-            sender = player.displayName,
+            sender = player.username,
             message = args.joinToString(" ")
         )
-        player.sendMessage(*message)
+        player.sendMessage(message)
         chattORE.sendPrivileged(
-            *message,
+            message,
             exclude = player.uniqueId
         )
     }

@@ -17,12 +17,14 @@ object ChattORESpec : ConfigSpec("") {
         )
         val format by optional("`%prefix%` **%sender%**: %message%")
     }
+
     object irc : ConfigSpec() {
         val name by optional("ORENetwork")
         val server by optional("irc.esper.net")
         val channel by optional("#openredstone")
         val password by optional("nou")
     }
+
     object format : ConfigSpec() {
         val global by optional("%prefix% &7| &e%sender%&7: &r%message%")
         val discord by optional("&3Discord &7| &5%sender%&7: &r%message%")

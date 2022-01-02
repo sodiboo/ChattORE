@@ -1,60 +1,72 @@
 import co.aikar.commands.BaseCommand
-import co.aikar.commands.BungeeCommandManager
 import co.aikar.commands.CommandIssuer
 import co.aikar.commands.RegisteredCommand
+import co.aikar.commands.VelocityCommandManager
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import com.uchuhimo.konf.source.yaml.toYaml
+import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
+import com.velocitypowered.api.plugin.Plugin
+import com.velocitypowered.api.plugin.annotation.DataDirectory
+import com.velocitypowered.api.proxy.ProxyServer
 import commands.*
 import entity.ChattORESpec
 import listener.ChatListener
 import listener.DiscordListener
+import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
-import net.md_5.bungee.api.chat.BaseComponent
-import net.md_5.bungee.api.plugin.Plugin
 import org.javacord.api.DiscordApi
 import org.javacord.api.DiscordApiBuilder
-import org.javacord.api.entity.channel.Channel
 import org.javacord.api.entity.channel.TextChannel
 import org.javacord.api.entity.message.MessageBuilder
+import org.slf4j.Logger
 import java.io.File
+import java.nio.file.Path
 import java.util.*
-import java.util.logging.Level
 
-class ChattORE : Plugin() {
+private const val VERSION = "0.1.0-SNAPSHOT"
+
+@Plugin(
+    id = "chattore",
+    name = "ChattORE",
+    version = VERSION,
+    url = "https://openredstone.org",
+    description = "Because we want to have a chat system that actually wOREks for us.",
+    authors = ["Nickster258", "PaukkuPalikka", "StackDoubleFlow"]
+)
+class ChattORE(val proxy: ProxyServer, val logger: Logger, @DataDirectory dataFolder: Path) {
     lateinit var luckPerms: LuckPerms
     lateinit var config: Config
     private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
     private var discordMap: Map<String, DiscordApi> = hashMapOf()
-    override fun onEnable() {
+    private val dataFolder = dataFolder.toFile()
+
+    @Subscribe
+    fun onProxyInitialization(event: ProxyInitializeEvent) {
         config = loadConfig()
-        BungeeCommandManager(this).apply {
+        VelocityCommandManager(proxy, this).apply {
             registerCommand(Chattore(this@ChattORE))
             registerCommand(HelpOp(this@ChattORE))
-            registerCommand(Me(config, this.plugin.proxy))
-            registerCommand(Message(config, this.plugin.proxy, replyMap))
-            registerCommand(Reply(config, this.plugin.proxy, replyMap))
+            registerCommand(Me(config, this@ChattORE))
+            registerCommand(Message(config, proxy, replyMap))
+            registerCommand(Reply(config, proxy, replyMap))
             setDefaultExceptionHandler(::handleCommandException, false)
         }
         discordMap = loadDiscordTokens()
         discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
         discordMap.values.firstOrNull()?.addListener(DiscordListener(this))
         luckPerms = LuckPermsProvider.get()
-        this.proxy.pluginManager.registerListener(this, ChatListener(this))
-    }
-
-    override fun onDisable() {
-        discordMap.forEach { (_, discordApi) -> discordApi.disconnect() }
+        proxy.eventManager.register(this, ChatListener(this))
     }
 
     private fun loadDiscordTokens(): Map<String, DiscordApi> {
-        val availableServers = this.proxy.servers.map { it.key.toLowerCase() }.sorted()
+        val availableServers = proxy.allServers.map { it.serverInfo.name.toLowerCase() }.sorted()
         val configServers = config[ChattORESpec.discord.serverTokens].map { it.key.toLowerCase() }.sorted()
         if (availableServers != configServers) {
-            logger.log(
-                Level.WARNING,
+            logger.warn(
                 """
                     Supplied server keys in Discord configuration section does not match available servers:
                     Available servers: ${availableServers.joinToString()}
@@ -62,7 +74,7 @@ class ChattORE : Plugin() {
                 """.trimIndent()
             )
         }
-        return config[ChattORESpec.discord.serverTokens].mapValues { (name, token) ->
+        return config[ChattORESpec.discord.serverTokens].mapValues { (_, token) ->
             DiscordApiBuilder()
                 .setToken(token)
                 .login()
@@ -72,29 +84,33 @@ class ChattORE : Plugin() {
 
     private fun loadConfig(reloaded: Boolean = false): Config {
         if (!dataFolder.exists()) {
-            logger.log(Level.INFO, "No resource directory found, creating directory")
+            logger.info("No resource directory found, creating directory")
             dataFolder.mkdir()
         }
         val configFile = File(dataFolder, "config.yml")
         val loadedConfig = if (!configFile.exists()) {
-            logger.log(Level.INFO, "No config file found, generating from default config.yml")
+            logger.info("No config file found, generating from default config.yml")
             configFile.createNewFile()
             Config { addSpec(ChattORESpec) }
         } else {
             Config { addSpec(ChattORESpec) }.from.yaml.watchFile(configFile)
         }
         loadedConfig.toYaml.toFile(configFile)
-        logger.log(Level.INFO, "${if (reloaded) "Rel" else "L"}oaded config.yml")
+        logger.info("${if (reloaded) "Rel" else "L"}oaded config.yml")
         return loadedConfig
+    }
+
+    fun broadcast(component: Component) {
+        proxy.allPlayers.forEach { it.sendMessage(component) }
     }
 
     fun broadcastChatMessage(originServer: String, user: UUID, message: String) {
         val userManager = luckPerms.userManager
         val luckUser = userManager.getUser(user) ?: return
-        val name = this.proxy.getPlayer(user).displayName
+        val name = this.proxy.getPlayer(user).get().username
         val prefix = luckUser.cachedData.metaData.prefix ?: return
-        this.proxy.broadcast(
-            *config[ChattORESpec.format.global].formatGlobal(
+        broadcast(
+            config[ChattORESpec.format.global].formatGlobal(
                 prefix = prefix,
                 sender = name,
                 message = message
@@ -102,10 +118,11 @@ class ChattORE : Plugin() {
         )
 
         val discordApi = discordMap[originServer] ?: return
-        val channel = discordApi.getChannelById(config[ChattORESpec.discord.channelId]).orElse(null) as? TextChannel ?: run {
-            logger.severe("Could not get specified discord channel")
-            return
-        }
+        val channel =
+            discordApi.getChannelById(config[ChattORESpec.discord.channelId]).orElse(null) as? TextChannel ?: run {
+                logger.error("Could not get specified discord channel")
+                return
+            }
 
         val plainPrefix = PlainTextComponentSerializer.plainText().serialize(prefix.componentize())
         val content = config[ChattORESpec.discord.format]
@@ -117,21 +134,21 @@ class ChattORE : Plugin() {
     }
 
     fun broadcastDiscordMessage(sender: String, message: String) {
-        this.proxy.broadcast(
-            *config[ChattORESpec.format.discord].formatGlobal(
+        broadcast(
+            config[ChattORESpec.format.discord].formatGlobal(
                 sender = sender,
                 message = message
             )
         )
     }
 
-    fun sendPrivileged(vararg components: BaseComponent, exclude: UUID = UUID.randomUUID()) {
-        val privileged = proxy.players.filter {
+    fun sendPrivileged(component: Component, exclude: UUID = UUID.randomUUID()) {
+        val privileged = proxy.allPlayers.filter {
             it.hasPermission("chattore.privileged")
                     && (it.uniqueId != exclude)
         }
         for (user in privileged) {
-            user.sendMessage(*components)
+            user.sendMessage(component)
         }
     }
 
@@ -148,8 +165,12 @@ class ChattORE : Plugin() {
         return true
     }
 
-    fun reload() {
+    fun getVersion(): String {
+        return VERSION
+    }
 
+    fun reload() {
+        // TODO
     }
 }
 
