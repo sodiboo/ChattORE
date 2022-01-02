@@ -1,3 +1,5 @@
+package chattore;
+
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer

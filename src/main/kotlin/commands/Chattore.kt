@@ -1,11 +1,11 @@
-package commands
+package chattore.commands
 
-import ChattORE
+import chattore.ChattORE
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.velocitypowered.api.proxy.Player
-import entity.ChattORESpec
-import formatGlobal
+import chattore.entity.ChattORESpec
+import chattore.formatGlobal
 
 @CommandAlias("chattore")
 @CommandPermission("chattore.manage")

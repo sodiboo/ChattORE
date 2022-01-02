@@ -1,15 +1,15 @@
-package commands
+package chattore.commands
 
-import ChattORE
-import ChattoreException
+import chattore.ChattORE
+import chattore.ChattoreException
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.CommandAlias
 import co.aikar.commands.annotation.CommandPermission
 import co.aikar.commands.annotation.Default
 import co.aikar.commands.annotation.Syntax
 import com.velocitypowered.api.proxy.Player
-import entity.ChattORESpec
-import formatGlobal
+import chattore.entity.ChattORESpec
+import chattore.formatGlobal
 
 @CommandAlias("helpop|ac")
 @CommandPermission("chattore.helpop")

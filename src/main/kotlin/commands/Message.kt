@@ -1,13 +1,13 @@
-package commands
+package chattore.commands
 
-import ChattoreException
+import chattore.ChattoreException
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.uchuhimo.konf.Config
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
-import entity.ChattORESpec
-import formatGlobal
+import chattore.entity.ChattORESpec
+import chattore.formatGlobal
 import java.util.*
 
 @CommandAlias("msg|message|vmsg|vmessage|whisper|tell")

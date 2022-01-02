@@ -1,13 +1,13 @@
-package listener
+package chattore.listener
 
-import ChattORE
+import chattore.ChattORE
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.command.CommandExecuteEvent
 import com.velocitypowered.api.event.player.PlayerChatEvent
 import com.velocitypowered.api.event.player.TabCompleteEvent
 import com.velocitypowered.api.proxy.Player
-import entity.ChattORESpec
-import formatGlobal
+import chattore.entity.ChattORESpec
+import chattore.formatGlobal
 
 class ChatListener(
     private val chattORE: ChattORE

@@ -1,4 +1,4 @@
-package entity
+package chattore.entity
 
 import com.uchuhimo.konf.ConfigSpec
 

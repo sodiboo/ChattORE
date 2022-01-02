@@ -1,3 +1,5 @@
+package chattore;
+
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.CommandIssuer
 import co.aikar.commands.RegisteredCommand
@@ -12,10 +14,10 @@ import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
-import commands.*
-import entity.ChattORESpec
-import listener.ChatListener
-import listener.DiscordListener
+import chattore.commands.*
+import chattore.entity.ChattORESpec
+import chattore.listener.ChatListener
+import chattore.listener.DiscordListener
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.luckperms.api.LuckPerms

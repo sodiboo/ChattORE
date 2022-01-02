@@ -1,6 +1,6 @@
-package listener
+package chattore.listener
 
-import ChattORE
+import chattore.ChattORE
 import org.javacord.api.event.message.MessageCreateEvent
 import org.javacord.api.listener.message.MessageCreateListener
 
