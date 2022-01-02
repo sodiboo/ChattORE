@@ -2,6 +2,7 @@ import co.aikar.commands.BaseCommand
 import co.aikar.commands.CommandIssuer
 import co.aikar.commands.RegisteredCommand
 import co.aikar.commands.VelocityCommandManager
+import com.google.inject.Inject
 import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.source.yaml
 import com.uchuhimo.konf.source.yaml.toYaml
@@ -39,7 +40,7 @@ private const val VERSION = "0.1.0-SNAPSHOT"
     authors = ["Nickster258", "PaukkuPalikka", "StackDoubleFlow"],
     dependencies = [Dependency(id = "luckperms")]
 )
-class ChattORE(val proxy: ProxyServer, val logger: Logger, @DataDirectory dataFolder: Path) {
+class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @DataDirectory dataFolder: Path) {
     lateinit var luckPerms: LuckPerms
     lateinit var config: Config
     private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
