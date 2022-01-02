@@ -62,7 +62,11 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         }
         discordMap = loadDiscordTokens()
         discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
-        discordMap.values.firstOrNull()?.addListener(DiscordListener(this))
+        discordMap.values.firstOrNull()?.getChannelById(config[ChattORESpec.discord.channelId])?.ifPresent { channel ->
+            channel.asTextChannel().ifPresent { textChannel ->
+                textChannel.addMessageCreateListener(DiscordListener(this))
+            }
+        }
         luckPerms = LuckPermsProvider.get()
         proxy.eventManager.register(this, ChatListener(this))
     }
