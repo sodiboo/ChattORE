@@ -5,7 +5,6 @@ import com.uchuhimo.konf.ConfigSpec
 object ChattORESpec : ConfigSpec("") {
     object discord : ConfigSpec() {
         val networkToken by optional("nouNetwork")
-        val ircToken by optional("nouIrc")
         val playingMessage by optional("on the ORE Network")
         val channelId by optional(1234L)
         val serverTokens by optional(
@@ -16,13 +15,6 @@ object ChattORESpec : ConfigSpec("") {
             )
         )
         val format by optional("`%prefix%` **%sender%**: %message%")
-    }
-
-    object irc : ConfigSpec() {
-        val name by optional("ORENetwork")
-        val server by optional("irc.esper.net")
-        val channel by optional("#openredstone")
-        val password by optional("nou")
     }
 
     object format : ConfigSpec() {
