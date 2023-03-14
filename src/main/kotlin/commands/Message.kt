@@ -1,13 +1,13 @@
-package commands
+package chattore.commands
 
-import ChattoreException
+import chattore.ChattoreException
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.uchuhimo.konf.Config
-import entity.ChattORESpec
-import formatGlobal
-import net.md_5.bungee.api.ProxyServer
-import net.md_5.bungee.api.connection.ProxiedPlayer
+import com.velocitypowered.api.proxy.Player
+import com.velocitypowered.api.proxy.ProxyServer
+import chattore.entity.ChattORESpec
+import chattore.formatGlobal
 import java.util.*
 
 @CommandAlias("msg|message|vmsg|vmessage|whisper|tell")
@@ -21,9 +21,13 @@ class Message(
     @Default
     @Syntax("[target] <message>")
     @CommandCompletion("@players")
-    fun default(player: ProxiedPlayer, target: String, args: Array<String>) {
-        val targetPlayer = proxy.getPlayer(target) ?: throw ChattoreException("That user doesn't exist!")
-        sendMessage(replyMap, config, player, targetPlayer, args)
+    fun default(player: Player, target: String, args: Array<String>) {
+        proxy.getPlayer(target).ifPresentOrElse({ targetPlayer ->
+            sendMessage(replyMap, config, player, targetPlayer, args)
+        }, {
+            throw ChattoreException("That user doesn't exist!")
+        })
+
     }
 }
 
@@ -31,19 +35,19 @@ class Message(
 fun sendMessage(
     replyMap: MutableMap<UUID, UUID>,
     config: Config,
-    player: ProxiedPlayer,
-    targetPlayer: ProxiedPlayer,
+    player: Player,
+    targetPlayer: Player,
     args: Array<String>
 ) {
     player.sendMessage(
-        *config[ChattORESpec.format.messageSent].formatGlobal(
-            recipient = targetPlayer.displayName,
+        config[ChattORESpec.format.messageSent].formatGlobal(
+            recipient = targetPlayer.username,
             message = args.joinToString(" ")
         )
     )
     targetPlayer.sendMessage(
-        *config[ChattORESpec.format.messageReceived].formatGlobal(
-            sender = player.displayName,
+        config[ChattORESpec.format.messageReceived].formatGlobal(
+            sender = player.username,
             message = args.joinToString(" ")
         )
     )

@@ -1,29 +1,19 @@
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.TextComponent
-import net.kyori.adventure.text.serializer.bungeecord.BungeeCordComponentSerializer
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
-import net.md_5.bungee.api.chat.BaseComponent
+package chattore;
 
-fun String.componentize(
-    message: String,
-    preserveRawMessage: Boolean = false
-) : Component =
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextReplacementConfig
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+
+fun fixHexFormatting(str: String): String = str.replace(Regex("#([0-9a-f]{6})")) { "&${it.groupValues.first()}" }
+
+fun String.componentize(): Component =
     LegacyComponentSerializer.builder()
         .character('&')
         .hexCharacter('#')
         .extractUrls()
         .build()
-        .deserialize(this)
-        .replaceText("""%message%""".toPattern()) {
-            if (preserveRawMessage) {
-                TextComponent.of(message).toBuilder()
-            } else {
-                LegacyComponentSerializer
-                    .legacy('&')
-                    .deserialize(message.replace(Regex("#([0-9a-f]{6})")) { "&${it.groupValues.first()}" })
-                    .toBuilder()
-            }
-        }
+        .deserialize(fixHexFormatting(this))
 
 
 fun String.formatGlobal(
@@ -32,17 +22,29 @@ fun String.formatGlobal(
     recipient: String = "",
     message: String = "",
     preserveRawMessage: Boolean = false
-) : Array<BaseComponent> =
-    BungeeCordComponentSerializer.get().serialize(
-        this
-            .replaceFirst("%prefix%", prefix)
-            .replaceFirst("%sender%", sender)
-            .replaceFirst("%recipient%", recipient)
-            .componentize(
-                message
-                    .replace(Regex("""\s+"""), " ")
-                    .trim(),
-                preserveRawMessage
-            )
-    )
+): Component {
+    val message = message
+        .replace(Regex("""\s+"""), " ")
+        .trim()
+    return this
+        .replaceFirst("%prefix%", prefix)
+        .replaceFirst("%sender%", sender)
+        .replaceFirst("%recipient%", recipient)
+        .componentize()
+        .replaceText(
+            TextReplacementConfig
+                .builder()
+                .matchLiteral("""%message%""")
+                .replacement(
+                    if (preserveRawMessage) {
+                        PlainTextComponentSerializer.plainText().deserialize(message)
+                    } else {
+                        LegacyComponentSerializer
+                            .legacy('&')
+                            .deserialize(fixHexFormatting(message))
+                    }
+                )
+                .build()
+        )
+}
 
