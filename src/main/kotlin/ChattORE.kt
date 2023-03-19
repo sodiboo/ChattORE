@@ -60,11 +60,13 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             registerCommand(Reply(config, proxy, replyMap))
             setDefaultExceptionHandler(::handleCommandException, false)
         }
-        discordMap = loadDiscordTokens()
-        discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
-        discordMap.values.firstOrNull()?.getChannelById(config[ChattORESpec.discord.channelId])?.ifPresent { channel ->
-            channel.asTextChannel().ifPresent { textChannel ->
-                textChannel.addMessageCreateListener(DiscordListener(this))
+        if (config[ChattORESpec.discord.enable]) {
+            discordMap = loadDiscordTokens()
+            discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
+            discordMap.values.firstOrNull()?.getChannelById(config[ChattORESpec.discord.channelId])?.ifPresent { channel ->
+                channel.asTextChannel().ifPresent { textChannel ->
+                    textChannel.addMessageCreateListener(DiscordListener(this))
+                }
             }
         }
         luckPerms = LuckPermsProvider.get()

@@ -4,6 +4,7 @@ import com.uchuhimo.konf.ConfigSpec
 
 object ChattORESpec : ConfigSpec("") {
     object discord : ConfigSpec() {
+        val enable by optional(false)
         val networkToken by optional("nouNetwork")
         val playingMessage by optional("on the ORE Network")
         val channelId by optional(1234L)
