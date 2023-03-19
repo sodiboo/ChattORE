@@ -24,6 +24,7 @@ class ChatListener(
 
         val pp = event.player
         pp.currentServer.ifPresent { server ->
+            chattORE.logger.info("${pp.username} -> ${event.message}")
             chattORE.broadcastChatMessage(server.serverInfo.name, pp.uniqueId, event.message)
         }
     }
