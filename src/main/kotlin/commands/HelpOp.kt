@@ -21,9 +21,11 @@ class HelpOp(
     @Syntax("[message]")
     fun default(player: Player, args: Array<String>) {
         if (args.isEmpty()) throw ChattoreException("You have to have a problem first!") // : )
+        val statement = args.joinToString(" ")
+        chattORE.logger.info("[HelpOp] ${player.username}: $statement")
         val message = chattORE.config[ChattORESpec.format.help].formatGlobal(
             sender = player.username,
-            message = args.joinToString(" ")
+            message = statement
         )
         player.sendMessage(message)
         chattORE.sendPrivileged(

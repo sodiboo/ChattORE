@@ -23,10 +23,12 @@ class Me(
     @Syntax("[message]")
     fun default(player: Player, args: Array<String>) {
         if (args.isEmpty()) throw ChattoreException("You have to &ohave&c a thonk first!")
+        val statement = args.joinToString(" ")
+        chattORE.logger.info("* ${player.username} $statement")
         chattORE.broadcast(
             config[ChattORESpec.format.me].formatGlobal(
                 sender = player.username,
-                message = args.joinToString(" ")
+                message = statement
             )
         )
     }

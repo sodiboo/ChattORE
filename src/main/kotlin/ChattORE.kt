@@ -56,8 +56,8 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             registerCommand(Chattore(this@ChattORE))
             registerCommand(HelpOp(this@ChattORE))
             registerCommand(Me(config, this@ChattORE))
-            registerCommand(Message(config, proxy, replyMap))
-            registerCommand(Reply(config, proxy, replyMap))
+            registerCommand(Message(config, this@ChattORE, replyMap))
+            registerCommand(Reply(config, this@ChattORE, replyMap))
             setDefaultExceptionHandler(::handleCommandException, false)
         }
         if (config[ChattORESpec.discord.enable]) {
