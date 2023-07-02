@@ -3,6 +3,9 @@ package chattore.entity
 import com.uchuhimo.konf.ConfigSpec
 
 object ChattORESpec : ConfigSpec("") {
+
+    val storage by optional("storage.db")
+
     object discord : ConfigSpec() {
         val enable by optional(false)
         val networkToken by optional("nouNetwork")

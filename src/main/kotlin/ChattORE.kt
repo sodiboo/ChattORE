@@ -45,6 +45,8 @@ private const val VERSION = "0.1.0-SNAPSHOT"
 class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @DataDirectory dataFolder: Path) {
     lateinit var luckPerms: LuckPerms
     lateinit var config: Config
+    lateinit var database: Storage
+    private var offlineMap = hashMapOf<String, UUID>()
     private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
     private var discordMap: Map<String, DiscordApi> = hashMapOf()
     private val dataFolder = dataFolder.toFile()
@@ -52,14 +54,20 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     @Subscribe
     fun onProxyInitialization(event: ProxyInitializeEvent) {
         config = loadConfig()
+        luckPerms = LuckPermsProvider.get()
+        generateOfflinePlayers()
         VelocityCommandManager(proxy, this).apply {
             registerCommand(Chattore(this@ChattORE))
             registerCommand(HelpOp(this@ChattORE))
             registerCommand(Me(config, this@ChattORE))
             registerCommand(Message(config, this@ChattORE, replyMap))
             registerCommand(Reply(config, this@ChattORE, replyMap))
+            registerCommand(Mail(this@ChattORE))
             setDefaultExceptionHandler(::handleCommandException, false)
+            commandCompletions.registerCompletion("bool") { listOf("true", "false")}
+            commandCompletions.registerCompletion("offlinePlayer") { offlineMap.keys }
         }
+        database = Storage(this.dataFolder.resolve(config[ChattORESpec.storage]).toString())
         if (config[ChattORESpec.discord.enable]) {
             discordMap = loadDiscordTokens()
             discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
@@ -69,8 +77,11 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
                 }
             }
         }
-        luckPerms = LuckPermsProvider.get()
         proxy.eventManager.register(this, ChatListener(this))
+    }
+
+    private fun generateOfflinePlayers() {
+        // TODO: Populate offlineMap by querying luckperms_players for key: value to represent username: UUID
     }
 
     private fun loadDiscordTokens(): Map<String, DiscordApi> {
