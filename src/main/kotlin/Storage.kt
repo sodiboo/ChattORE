@@ -1,6 +1,7 @@
 package chattore
 
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.UUID
 
@@ -31,6 +32,27 @@ class Storage(
 
     private fun initTables() = transaction(database) {
         SchemaUtils.create(Mail, Nick)
+    }
+
+    fun removeNickname(target: UUID) = transaction(database) {
+        Nick.deleteWhere { Nick.user eq target.toString() }
+    }
+
+    fun getNickname(target: UUID): String? = transaction(database) {
+        Nick.select { Nick.user eq target.toString() }.firstOrNull()?.let { it[Nick.nick] }
+    }
+
+    fun setNickname(target: UUID, nickname: String) = transaction(database) {
+        if (Nick.select { Nick.user eq target.toString() }.count() == 0L) {
+            Nick.insert {
+                it[this.user] = target.toString()
+                it[this.nick] = nickname
+            }
+        } else {
+            Nick.update({ Nick.user eq target.toString() }) {
+                it[this.nick] = nickname
+            }
+        }
     }
 
     fun insertMessage(sender: UUID, recipient: UUID, message: String) = transaction(database) {
