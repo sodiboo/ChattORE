@@ -1,6 +1,9 @@
 package chattore.commands
 
 import chattore.ChattORE
+import chattore.ChattoreException
+import chattore.entity.ChattORESpec
+import chattore.formatGlobal
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import co.aikar.commands.annotation.Optional
@@ -22,15 +25,36 @@ class Mail(private val chattORE: ChattORE) : BaseCommand() {
         // TODO 'read' filters inbox on if its been marked as read or not, 'page' is the page in the mailbox viewer
         // Note: 'read' and 'page' will be autopopulated by the mailbox pagination stuff.
     }
+
     @Subcommand("send")
-    @CommandCompletion("@offlinePlayer")
+    @CommandCompletion("@usernameCache")
     fun send(player: Player, @Single target: String, message: String) {
-        // TODO 'target' represents offline player, 'message' is the message to be sent
-        // Note: this will update 'mailTimeouts' so as to avoid flooding.
+        val now = System.currentTimeMillis().floorDiv(1000)
+        mailTimeouts[player.uniqueId]?.let {
+            // 60 second timeout to prevent flooding
+            if (now < it + 60) throw ChattoreException("You are mailing too quickly!")
+        }
+        val targetUuid = chattORE.database.usernameToUuidCache[target]
+            ?: throw ChattoreException("We do not recognize that user!")
+        mailTimeouts[player.uniqueId] = now
+        chattORE.database.insertMessage(player.uniqueId, targetUuid, message)
+        val response = chattORE.config[ChattORESpec.format.mailSent].formatGlobal(
+            recipient = target,
+            message = message
+        )
+        player.sendMessage(response)
     }
+
     @Subcommand("read")
     fun read(player: Player, id: Int) {
-        // TODO Implement where 'id' is the id in the database.
-        // Note: have checks that id is a message sent to this player
+        chattORE.database.readMessage(player.uniqueId, id)?.let {
+            val response = chattORE.config[ChattORESpec.format.mailReceived].formatGlobal(
+                sender = chattORE.database.uuidToUsernameCache[it.first]!!,
+                message = it.second
+            )
+            player.sendMessage(response)
+        } ?: run {
+            throw ChattoreException("Invalid message ID!")
+        }
     }
 }

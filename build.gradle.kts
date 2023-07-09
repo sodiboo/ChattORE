@@ -34,6 +34,7 @@ dependencies {
     implementation(group = "com.uchuhimo", name = "konf", version = "0.22.1")
     implementation(group = "net.luckperms", name = "api", version = "5.1")
     implementation(group = "org.jetbrains.exposed", name = "exposed-core", version = "0.40.1")
+    implementation(group = "org.jetbrains.exposed", name = "exposed-jdbc", version = "0.40.1")
     implementation(group = "org.jetbrains.exposed", name = "exposed-java-time", version = "0.40.1")
     implementation(group = "org.xerial", name = "sqlite-jdbc", version = "3.30.1")
     implementation(group = "net.kyori", name = "adventure-api", version = "4.9.2")

@@ -55,7 +55,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     fun onProxyInitialization(event: ProxyInitializeEvent) {
         config = loadConfig()
         luckPerms = LuckPermsProvider.get()
-        generateOfflinePlayers()
+        database = Storage(this.dataFolder.resolve(config[ChattORESpec.storage]).toString())
         VelocityCommandManager(proxy, this).apply {
             registerCommand(Chattore(this@ChattORE))
             registerCommand(HelpOp(this@ChattORE))
@@ -65,9 +65,8 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             registerCommand(Mail(this@ChattORE))
             setDefaultExceptionHandler(::handleCommandException, false)
             commandCompletions.registerCompletion("bool") { listOf("true", "false")}
-            commandCompletions.registerCompletion("offlinePlayer") { offlineMap.keys }
+            commandCompletions.registerCompletion("usernameCache") { database.uuidToUsernameCache.values }
         }
-        database = Storage(this.dataFolder.resolve(config[ChattORESpec.storage]).toString())
         if (config[ChattORESpec.discord.enable]) {
             discordMap = loadDiscordTokens()
             discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
@@ -78,10 +77,6 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             }
         }
         proxy.eventManager.register(this, ChatListener(this))
-    }
-
-    private fun generateOfflinePlayers() {
-        // TODO: Populate offlineMap by querying luckperms_players for key: value to represent username: UUID
     }
 
     private fun loadDiscordTokens(): Map<String, DiscordApi> {

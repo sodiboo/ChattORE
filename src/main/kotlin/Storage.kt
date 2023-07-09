@@ -16,14 +16,22 @@ object Mail : Table("mail") {
 }
 
 object Nick : Table("nick") {
-    val user = varchar("nick_user", 36).index()
+    val uuid = varchar("nick_uuid", 36).index()
     val nick = varchar("nick_nick", 2048)
-    override val primaryKey = PrimaryKey(user)
+    override val primaryKey = PrimaryKey(uuid)
+}
+
+object UsernameCache : Table("username_cache") {
+    val uuid = varchar("cache_user", 36).index()
+    val username = varchar("cache_username", 16).index()
+    override val primaryKey = PrimaryKey(uuid)
 }
 
 class Storage(
     dbFile: String
 ) {
+    var uuidToUsernameCache = mapOf<UUID, String>()
+    var usernameToUuidCache = mapOf<String, UUID>()
     private val database = Database.connect("jdbc:sqlite:${dbFile}", "org.sqlite.JDBC")
 
     init {
@@ -31,28 +39,51 @@ class Storage(
     }
 
     private fun initTables() = transaction(database) {
-        SchemaUtils.create(Mail, Nick)
+        SchemaUtils.create(Mail, Nick, UsernameCache)
     }
 
     fun removeNickname(target: UUID) = transaction(database) {
-        Nick.deleteWhere { Nick.user eq target.toString() }
+        Nick.deleteWhere { Nick.uuid eq target.toString() }
     }
 
     fun getNickname(target: UUID): String? = transaction(database) {
-        Nick.select { Nick.user eq target.toString() }.firstOrNull()?.let { it[Nick.nick] }
+        Nick.select { Nick.uuid eq target.toString() }.firstOrNull()?.let { it[Nick.nick] }
     }
 
     fun setNickname(target: UUID, nickname: String) = transaction(database) {
-        if (Nick.select { Nick.user eq target.toString() }.count() == 0L) {
+        if (Nick.select { Nick.uuid eq target.toString() }.count() == 0L) {
             Nick.insert {
-                it[this.user] = target.toString()
+                it[this.uuid] = target.toString()
                 it[this.nick] = nickname
             }
         } else {
-            Nick.update({ Nick.user eq target.toString() }) {
+            Nick.update({ Nick.uuid eq target.toString() }) {
                 it[this.nick] = nickname
             }
         }
+    }
+
+    fun ensureCachedUsername(user: UUID, username: String) = transaction(database) {
+        if (UsernameCache.select { UsernameCache.uuid eq user.toString() }.count() == 0L) {
+            UsernameCache.insert {
+                it[this.uuid] = user.toString()
+                it[this.username] = username
+            }
+        } else {
+            UsernameCache.update({ UsernameCache.uuid eq user.toString() }) {
+                it[this.username] = username
+            }
+        }
+        updateLocalUsernameCache()
+    }
+
+    private fun updateLocalUsernameCache() {
+        uuidToUsernameCache = transaction(database) {
+            UsernameCache.selectAll().associate {
+                UUID.fromString(it[UsernameCache.uuid]) to it[UsernameCache.username]
+            }
+        }
+        usernameToUuidCache = uuidToUsernameCache.entries.associate{(k,v)-> v to k}
     }
 
     fun insertMessage(sender: UUID, recipient: UUID, message: String) = transaction(database) {
@@ -64,12 +95,12 @@ class Storage(
         }
     }
 
-    fun readMessage(id: Int): String? = transaction(database) {
+    fun readMessage(recipient: UUID, id: Int): Pair<UUID, String>? = transaction(database) {
         Mail.select {
-            Mail.id eq id
+            (Mail.id eq id) and (Mail.recipient eq recipient.toString())
         }.firstOrNull()?.let { toReturn ->
             markRead(id, true)
-            toReturn[Mail.message]
+            UUID.fromString(toReturn[Mail.sender]) to toReturn[Mail.message]
         }
     }
 
