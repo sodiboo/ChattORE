@@ -8,6 +8,7 @@ import com.velocitypowered.api.event.player.TabCompleteEvent
 import com.velocitypowered.api.proxy.Player
 import chattore.entity.ChattORESpec
 import chattore.formatGlobal
+import com.velocitypowered.api.event.player.ServerPreConnectEvent
 
 class ChatListener(
     private val chattORE: ChattORE
@@ -16,6 +17,14 @@ class ChatListener(
     fun onTabComplete(event: TabCompleteEvent) {
         // TODO: Autocomplete player names and stuff idk
         event.suggestions.clear()
+    }
+
+    @Subscribe
+    fun onJoin(event: ServerPreConnectEvent) {
+        chattORE.database.ensureCachedUsername(
+            event.player.uniqueId,
+            event.player.username
+        )
     }
 
     @Subscribe
