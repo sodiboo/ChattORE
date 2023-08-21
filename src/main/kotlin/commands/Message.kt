@@ -55,4 +55,5 @@ fun sendMessage(
         )
     )
     replyMap[targetPlayer.uniqueId] = player.uniqueId
+    replyMap[player.uniqueId] = targetPlayer.uniqueId
 }
