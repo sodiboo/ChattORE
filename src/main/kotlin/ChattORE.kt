@@ -18,7 +18,9 @@ import chattore.commands.*
 import chattore.entity.ChattORESpec
 import chattore.listener.ChatListener
 import chattore.listener.DiscordListener
+import com.velocitypowered.api.proxy.Player
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
@@ -63,6 +65,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             registerCommand(Message(config, this@ChattORE, replyMap))
             registerCommand(Reply(config, this@ChattORE, replyMap))
             registerCommand(Mail(this@ChattORE))
+            registerCommand(Nick(this@ChattORE))
             setDefaultExceptionHandler(::handleCommandException, false)
             commandCompletions.registerCompletion("bool") { listOf("true", "false")}
             commandCompletions.registerCompletion("usernameCache") { database.uuidToUsernameCache.values }
@@ -124,12 +127,12 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     fun broadcastChatMessage(originServer: String, user: UUID, message: String) {
         val userManager = luckPerms.userManager
         val luckUser = userManager.getUser(user) ?: return
-        val name = this.proxy.getPlayer(user).get().username
+        val name = this.database.getNickname(user) ?: this.proxy.getPlayer(user).get().username
         val prefix = luckUser.cachedData.metaData.prefix ?: return
         broadcast(
             config[ChattORESpec.format.global].formatGlobal(
                 prefix = prefix,
-                sender = name,
+                sender = MiniMessage.miniMessage().deserialize(name), // This handles IGNs and Nicknames
                 message = message
             )
         )
@@ -178,7 +181,11 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     ): Boolean {
         val exception = throwable as? ChattoreException ?: return false
         val message = exception.message ?: "Something went wrong!"
-        sender.sendMessage(config[ChattORESpec.format.error].replace("%message%", message))
+        if (sender is Player) {
+            sender.sendMessage(config[ChattORESpec.format.error].formatError(message))
+        } else {
+            sender.sendMessage("Error: $message")
+        }
         return true
     }
 

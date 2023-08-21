@@ -5,7 +5,7 @@ import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.velocitypowered.api.proxy.Player
 import chattore.entity.ChattORESpec
-import chattore.formatGlobal
+import chattore.formatBasic
 
 @CommandAlias("chattore")
 @CommandPermission("chattore.manage")
@@ -15,7 +15,7 @@ class Chattore(private val chattORE: ChattORE) : BaseCommand() {
     @Subcommand("version")
     fun version(player: Player) {
         player.sendMessage(
-            chattORE.config[ChattORESpec.format.chattore].formatGlobal(
+            chattORE.config[ChattORESpec.format.chattore].formatBasic(
                 message = "Version &7${chattORE.getVersion()}"
             )
         )
@@ -25,7 +25,7 @@ class Chattore(private val chattORE: ChattORE) : BaseCommand() {
     fun reload(player: Player) {
         chattORE.reload()
         player.sendMessage(
-            chattORE.config[ChattORESpec.format.chattore].formatGlobal(
+            chattORE.config[ChattORESpec.format.chattore].formatBasic(
                 message = "Reloaded ChattORE"
             )
         )

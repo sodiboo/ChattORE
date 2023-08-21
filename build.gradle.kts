@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("com.github.johnrengelman.shadow") version "2.0.4"
+    id("com.github.johnrengelman.shadow") version "6.1.0"
     id("org.jetbrains.kotlin.jvm") version "1.3.72"
     id("org.jetbrains.kotlin.kapt") version "1.6.10"
 }
@@ -37,13 +37,10 @@ dependencies {
     implementation(group = "org.jetbrains.exposed", name = "exposed-jdbc", version = "0.40.1")
     implementation(group = "org.jetbrains.exposed", name = "exposed-java-time", version = "0.40.1")
     implementation(group = "org.xerial", name = "sqlite-jdbc", version = "3.30.1")
-    implementation(group = "net.kyori", name = "adventure-api", version = "4.9.2")
-    implementation(group = "net.kyori", name = "adventure-text-serializer-legacy", version = "4.9.2")
-    implementation(group = "net.kyori", name = "adventure-text-serializer-plain", version = "4.9.2")
     implementation(group = "co.aikar", name = "acf-velocity", version = "0.5.1-SNAPSHOT")
     implementation(group = "org.javacord", name = "javacord", version = "3.3.2")
-    implementation(group = "com.velocitypowered", name = "velocity-api", version = "3.0.1")
-    kapt(group = "com.velocitypowered", name = "velocity-api", version = "3.0.1")
+    implementation(group = "com.velocitypowered", name = "velocity-api", version = "3.2.0-SNAPSHOT")
+    kapt(group = "com.velocitypowered", name = "velocity-api", version = "3.2.0-SNAPSHOT")
 }
 
 tasks.withType<KotlinCompile> {
