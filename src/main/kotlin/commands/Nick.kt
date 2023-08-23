@@ -1,15 +1,10 @@
 package chattore.commands
 
-import chattore.ChattORE
-import chattore.ChattoreException
+import chattore.*
 import chattore.entity.ChattORESpec
-import chattore.formatBasic
-import chattore.formatGlobal
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.velocitypowered.api.proxy.Player
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
 import java.awt.Color
 import java.util.*
 import java.util.regex.Pattern
@@ -73,8 +68,8 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         val targetUuid = chattORE.database.usernameToUuidCache[target]
             ?: throw ChattoreException("We do not recognize that user!")
         chattORE.database.setNickname(targetUuid, nick)
-        val response = chattORE.config[ChattORESpec.format.chattore].formatGlobal(
-            message = "Set nickname for $target as $nick."
+        val response = chattORE.config[ChattORESpec.format.chattore].render(
+            "Set nickname for $target as $nick."
         )
         player.sendMessage(response)
     }
@@ -86,8 +81,8 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         val targetUuid = chattORE.database.usernameToUuidCache[target]
             ?: throw ChattoreException("We do not recognize that user!")
         chattORE.database.removeNickname(targetUuid)
-        val response = chattORE.config[ChattORESpec.format.chattore].formatGlobal(
-            message = "Removed nickname for $target."
+        val response = chattORE.config[ChattORESpec.format.chattore].render(
+            "Removed nickname for $target."
         )
         player.sendMessage(response)
     }
@@ -99,8 +94,8 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         // Note: Allow hex color codes?
         // Another note: may be worth having a timeout to prevent people from changing to frequently.
         chattORE.database.setNickname(player.uniqueId, "${color}${player.username}")
-        val response = chattORE.config[ChattORESpec.format.chattore].formatGlobal(
-            message = "Set your username color to $color"
+        val response = chattORE.config[ChattORESpec.format.chattore].render(
+            "Set your username color to $color"
         )
         player.sendMessage(response)
     }
@@ -112,8 +107,8 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         if (colors.size > 3) throw ChattoreException("Too many colors!")
         // Note: worth having a timeout to prevent people from changing too frequently.
         val rendered = setNicknameGradient(player.uniqueId, player.username, *colors)
-        val response = chattORE.config[ChattORESpec.format.chattore].formatBasic(
-            MiniMessage.miniMessage().deserialize("Your username has been set to $rendered")
+        val response = chattORE.config[ChattORESpec.format.chattore].render(
+            "Your username has been set to $rendered".miniMessageDeserialize()
         )
         player.sendMessage(response)
     }
@@ -126,8 +121,8 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         val targetUuid = chattORE.database.usernameToUuidCache[target]
             ?: throw ChattoreException("We do not recognize that user!")
         val rendered = setNicknameGradient(targetUuid, target, *colors)
-        val response = chattORE.config[ChattORESpec.format.chattore].formatBasic(
-            MiniMessage.miniMessage().deserialize("Your username has been set to $rendered")
+        val response = chattORE.config[ChattORESpec.format.chattore].render(
+            "Your username has been set to $rendered".miniMessageDeserialize()
         )
         player.sendMessage(response)
     }

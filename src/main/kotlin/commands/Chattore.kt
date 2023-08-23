@@ -1,11 +1,12 @@
 package chattore.commands
 
 import chattore.ChattORE
+import chattore.render
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.velocitypowered.api.proxy.Player
 import chattore.entity.ChattORESpec
-import chattore.formatBasic
+import chattore.legacyDeserialize
 
 @CommandAlias("chattore")
 @CommandPermission("chattore.manage")
@@ -15,8 +16,8 @@ class Chattore(private val chattORE: ChattORE) : BaseCommand() {
     @Subcommand("version")
     fun version(player: Player) {
         player.sendMessage(
-            chattORE.config[ChattORESpec.format.chattore].formatBasic(
-                message = "Version &7${chattORE.getVersion()}"
+            chattORE.config[ChattORESpec.format.chattore].render(
+                "Version &7${chattORE.getVersion()}".legacyDeserialize()
             )
         )
     }
@@ -25,8 +26,8 @@ class Chattore(private val chattORE: ChattORE) : BaseCommand() {
     fun reload(player: Player) {
         chattORE.reload()
         player.sendMessage(
-            chattORE.config[ChattORESpec.format.chattore].formatBasic(
-                message = "Reloaded ChattORE"
+            chattORE.config[ChattORESpec.format.chattore].render(
+                "Reloaded ChattORE"
             )
         )
     }

@@ -2,8 +2,9 @@ package chattore.commands
 
 import chattore.ChattORE
 import chattore.ChattoreException
+import chattore.render
 import chattore.entity.ChattORESpec
-import chattore.formatGlobal
+import chattore.toComponent
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import co.aikar.commands.annotation.Optional
@@ -38,9 +39,11 @@ class Mail(private val chattORE: ChattORE) : BaseCommand() {
             ?: throw ChattoreException("We do not recognize that user!")
         mailTimeouts[player.uniqueId] = now
         chattORE.database.insertMessage(player.uniqueId, targetUuid, message)
-        val response = chattORE.config[ChattORESpec.format.mailSent].formatGlobal(
-            recipient = target,
-            message = message
+        val response = chattORE.config[ChattORESpec.format.mailSent].render(
+            mapOf(
+                "message" to message.toComponent(),
+                "recipient" to target.toComponent()
+            )
         )
         player.sendMessage(response)
     }
@@ -48,9 +51,11 @@ class Mail(private val chattORE: ChattORE) : BaseCommand() {
     @Subcommand("read")
     fun read(player: Player, id: Int) {
         chattORE.database.readMessage(player.uniqueId, id)?.let {
-            val response = chattORE.config[ChattORESpec.format.mailReceived].formatGlobal(
-                sender = chattORE.database.uuidToUsernameCache[it.first]!!,
-                message = it.second
+            val response = chattORE.config[ChattORESpec.format.mailReceived].render(
+                mapOf(
+                    "message" to it.second.toComponent(),
+                    "sender" to chattORE.database.uuidToUsernameCache.getValue(it.first).toComponent()
+                )
             )
             player.sendMessage(response)
         } ?: run {

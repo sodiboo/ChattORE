@@ -7,7 +7,8 @@ import com.velocitypowered.api.event.player.PlayerChatEvent
 import com.velocitypowered.api.event.player.TabCompleteEvent
 import com.velocitypowered.api.proxy.Player
 import chattore.entity.ChattORESpec
-import chattore.formatGlobal
+import chattore.render
+import chattore.toComponent
 import com.velocitypowered.api.event.player.ServerPreConnectEvent
 
 class ChatListener(
@@ -41,10 +42,11 @@ class ChatListener(
     @Subscribe
     fun onCommandEvent(event: CommandExecuteEvent) {
         chattORE.sendPrivileged(
-            chattORE.config[ChattORESpec.format.commandSpy].formatGlobal(
-                sender = (event.commandSource as? Player)?.username ?: "Console",
-                message = event.command,
-                preserveRawMessage = true
+            chattORE.config[ChattORESpec.format.commandSpy].render(
+                mapOf(
+                    "message" to event.command.toComponent(),
+                    "sender" to ((event.commandSource as? Player)?.username ?: "Console").toComponent()
+                )
             )
         )
     }

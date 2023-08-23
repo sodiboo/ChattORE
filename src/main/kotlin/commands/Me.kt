@@ -2,6 +2,7 @@ package chattore.commands
 
 import chattore.ChattORE
 import chattore.ChattoreException
+import chattore.render
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.CommandAlias
 import co.aikar.commands.annotation.CommandPermission
@@ -10,7 +11,7 @@ import co.aikar.commands.annotation.Syntax
 import com.uchuhimo.konf.Config
 import com.velocitypowered.api.proxy.Player
 import chattore.entity.ChattORESpec
-import chattore.formatGlobal
+import chattore.toComponent
 
 @CommandAlias("me")
 @CommandPermission("chattore.me")
@@ -26,9 +27,11 @@ class Me(
         val statement = args.joinToString(" ")
         chattORE.logger.info("* ${player.username} $statement")
         chattORE.broadcast(
-            config[ChattORESpec.format.me].formatGlobal(
-                sender = player.username,
-                message = statement
+            config[ChattORESpec.format.me].render(
+                mapOf(
+                    "message" to statement.toComponent(),
+                    "sender" to player.username.toComponent()
+                )
             )
         )
     }

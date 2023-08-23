@@ -20,7 +20,6 @@ import chattore.listener.ChatListener
 import chattore.listener.DiscordListener
 import com.velocitypowered.api.proxy.Player
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
@@ -130,10 +129,12 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         val name = this.database.getNickname(user) ?: this.proxy.getPlayer(user).get().username
         val prefix = luckUser.cachedData.metaData.prefix ?: return
         broadcast(
-            config[ChattORESpec.format.global].formatGlobal(
-                prefix = prefix,
-                sender = MiniMessage.miniMessage().deserialize(name), // This handles IGNs and Nicknames
-                message = message
+            config[ChattORESpec.format.global].render(
+                mapOf(
+                    "message" to message.legacyDeserialize(),
+                    "sender" to name.miniMessageDeserialize(),
+                    "prefix" to prefix.legacyDeserialize()
+                )
             )
         )
 
@@ -155,9 +156,11 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
 
     fun broadcastDiscordMessage(sender: String, message: String) {
         broadcast(
-            config[ChattORESpec.format.discord].formatGlobal(
-                sender = sender,
-                message = message
+            config[ChattORESpec.format.discord].render(
+                mapOf(
+                    "sender" to sender.toComponent(),
+                    "message" to message.toComponent()
+                )
             )
         )
     }
@@ -182,7 +185,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         val exception = throwable as? ChattoreException ?: return false
         val message = exception.message ?: "Something went wrong!"
         if (sender is Player) {
-            sender.sendMessage(config[ChattORESpec.format.error].formatError(message))
+            sender.sendMessage(config[ChattORESpec.format.error].render(message))
         } else {
             sender.sendMessage("Error: $message")
         }

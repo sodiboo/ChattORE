@@ -1,13 +1,11 @@
 package chattore.commands
 
-import chattore.ChattORE
-import chattore.ChattoreException
+import chattore.*
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.uchuhimo.konf.Config
 import com.velocitypowered.api.proxy.Player
 import chattore.entity.ChattORESpec
-import chattore.formatGlobal
 import org.slf4j.Logger
 import java.util.*
 
@@ -43,15 +41,19 @@ fun sendMessage(
     val statement = args.joinToString(" ")
     logger.info("${player.username} -> ${targetPlayer.username}: $statement")
     player.sendMessage(
-        config[ChattORESpec.format.messageSent].formatGlobal(
-            recipient = targetPlayer.username,
-            message = statement
+        config[ChattORESpec.format.messageSent].render(
+            mapOf(
+                "message" to statement.legacyDeserialize(),
+                "recipient" to targetPlayer.username.toComponent()
+            )
         )
     )
     targetPlayer.sendMessage(
-        config[ChattORESpec.format.messageReceived].formatGlobal(
-            sender = player.username,
-            message = statement
+        config[ChattORESpec.format.messageReceived].render(
+            mapOf(
+                "message" to statement.legacyDeserialize(),
+                "sender" to player.username.toComponent()
+            )
         )
     )
     replyMap[targetPlayer.uniqueId] = player.uniqueId
