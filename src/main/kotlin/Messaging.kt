@@ -15,9 +15,34 @@ fun String.componentize(): Component =
         .build()
         .deserialize(fixHexFormatting(this))
 
+val urlRegex = """(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])""".toRegex()
 fun String.legacyDeserialize() = LegacyComponentSerializer.legacy('&').deserialize(this)
 fun String.miniMessageDeserialize() = MiniMessage.miniMessage().deserialize(this)
 fun String.toComponent() = Component.text(this)
+fun String.extractUrls(): Component {
+    // "google.com" gets cut to "google.co"
+    val parts = urlRegex.split(this)
+    val matches = urlRegex.findAll(this).iterator()
+    val buildore = Component.text()
+    parts.forEach {
+        buildore.append(it.legacyDeserialize())
+        if (matches.hasNext()) {
+            val nextMatch = matches.next()
+            buildore.append(
+                (
+                    "<aqua><click:open_url:${nextMatch.value.removeSuffix('/'.toString())}>" +
+                    "<hover:show_text:'<aqua>${nextMatch.value}'>" +
+                    "[${nextMatch.groupValues[2]} ↩]" +
+                    "</hover>" +
+                    "</click><reset>"
+                ).miniMessageDeserialize()
+            )
+        }
+    }
+    if (parts.size > 1)
+        buildore.append(parts.last().legacyDeserialize())
+    return buildore.build()
+}
 
 fun String.render(
     message: String

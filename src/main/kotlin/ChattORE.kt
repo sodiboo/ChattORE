@@ -131,7 +131,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         broadcast(
             config[ChattORESpec.format.global].render(
                 mapOf(
-                    "message" to message.legacyDeserialize(),
+                    "message" to message.extractUrls(),
                     "sender" to name.miniMessageDeserialize(),
                     "prefix" to prefix.legacyDeserialize()
                 )
