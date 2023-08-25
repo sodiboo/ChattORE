@@ -30,8 +30,6 @@ class ChatListener(
 
     @Subscribe
     fun onChatEvent(event: PlayerChatEvent) {
-        event.result = PlayerChatEvent.ChatResult.denied()
-
         val pp = event.player
         pp.currentServer.ifPresent { server ->
             chattORE.logger.info("${pp.username}: ${event.message}")
