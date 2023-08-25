@@ -5,73 +5,67 @@ import chattore.entity.ChattORESpec
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.velocitypowered.api.proxy.Player
-import java.awt.Color
+import net.kyori.adventure.text.minimessage.MiniMessage
 import java.util.*
-import java.util.regex.Pattern
 
-class NameGradient(private val name: String, private vararg val colors: Color) {
-
-    fun getRendered(): String = StringBuilder().apply{
-        for (i in name.indices) {
-            this.append("<#${Integer.toHexString(this@NameGradient.color(i.toFloat()).rgb).drop(2)}>${name[i]}")
-        }
-        this.append("<reset>")
-    }.toString()
-
-    private fun color(value: Float): Color {
-        var value = value
-        value /= name.length.toFloat() / (colors.size - 1).toFloat()
-        val start = colors[value.toInt()]
-        val end = colors[value.toInt() + 1]
-        val step = value - value.toInt()
-        val rStep = end.red - start.red
-        val gStep = end.green - start.green
-        val bStep = end.blue - start.blue
-        return Color(
-            start.red + (rStep * step).toInt(),
-            start.green + (gStep * step).toInt(),
-            start.blue + (bStep * step).toInt()
-        )
-    }
-}
-
+// TODO: 8/23/2023 Add to autocompletes?
 val hexColorMap = mapOf(
-    "O" to "#000000",
-    "1" to "#00AA00",
-    "2" to "#00AA00",
-    "3" to "#00AAAA",
-    "4" to "#AA0000",
-    "5" to "#AA00AA",
-    "6" to "#FFAA00",
-    "7" to "#AAAAAA",
-    "8" to "#555555",
-    "9" to "#5555FF",
-    "a" to "#55FF55",
-    "b" to "#55FFFF",
-    "c" to "#FF5555",
-    "d" to "#FF55FF",
-    "e" to "#FFFF55",
-    "f" to "#FFFFFF"
+    "O" to Pair("#000000", "black"),
+    "1" to Pair("#00AA00", "dark_blue"),
+    "2" to Pair("#00AA00", "dark_green"),
+    "3" to Pair("#00AAAA", "dark_aqua"),
+    "4" to Pair("#AA0000", "dark_red"),
+    "5" to Pair("#AA00AA", "dark_purple"),
+    "6" to Pair("#FFAA00", "gold"),
+    "7" to Pair("#AAAAAA", "gray"),
+    "8" to Pair("#555555", "dark_gray"),
+    "9" to Pair("#5555FF", "blue"),
+    "a" to Pair("#55FF55", "green"),
+    "b" to Pair("#55FFFF", "aqua"),
+    "c" to Pair("#FF5555", "red"),
+    "d" to Pair("#FF55FF", "light_purple"),
+    "e" to Pair("#FFFF55", "yellow"),
+    "f" to Pair("#FFFFFF", "white")
 )
+
+val hexPattern = """#[0-f]{6}""".toRegex()
+
+fun String.validateColor() = if (this.startsWith("&")) {
+    if (this.length != 2) {
+        throw ChattoreException("When providing legacy color codes, use a single character after &.")
+    }
+    val code = hexColorMap[this.substring(1)]
+        ?: throw ChattoreException("Invalid color code provided")
+    code.second
+} else if (hexPattern.matches(this)) {
+    this
+} else if (this in hexColorMap.values.map { it.second }) {
+    this
+} else {
+    throw ChattoreException("Invalid color code provided")
+}
 
 @CommandAlias("nick")
 @Description("Manage nicknames")
 @CommandPermission("chattore.nick")
 class Nick(private val chattORE: ChattORE) : BaseCommand() {
 
-    init {
-        val hexPattern = Pattern.compile("""#[0-f]{6}""")
-    }
+    // TODO: 8/23/2023 Add timeout map
+
     @Subcommand("nick")
     @CommandPermission("chattore.nick.others")
+    @CommandCompletion("@usernameCache")
     fun nick(player: Player, @Single target: String, @Single nick: String) {
         val targetUuid = chattORE.database.usernameToUuidCache[target]
             ?: throw ChattoreException("We do not recognize that user!")
-        chattORE.database.setNickname(targetUuid, nick)
-        val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Set nickname for $target as $nick."
-        )
-        player.sendMessage(response)
+        val nickname = if (nick.contains("&")) {
+            nick.legacyDeserialize()
+        } else {
+            nick.miniMessageDeserialize()
+        }
+        val rendered = MiniMessage.miniMessage().serialize(nickname)
+        chattORE.database.setNickname(targetUuid, rendered)
+        sendPlayerNotifications(target, player, targetUuid, rendered)
     }
 
     @Subcommand("remove")
@@ -90,12 +84,12 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
     @Subcommand("color")
     @CommandPermission("chattore.nick.color")
     fun color(player: Player, @Single color: String) {
-        // TODO Filter for valid color codes before applying to self
-        // Note: Allow hex color codes?
-        // Another note: may be worth having a timeout to prevent people from changing to frequently.
-        chattORE.database.setNickname(player.uniqueId, "${color}${player.username}")
+        // Note: worth having a timeout to prevent people from changing too frequently.
+        val code = "<${color.validateColor()}>"
+        val nickname = "${code}${player.username}<reset>"
+        chattORE.database.setNickname(player.uniqueId, nickname)
         val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Set your username color to $color"
+            "Set your nickname to $nickname".miniMessageDeserialize()
         )
         player.sendMessage(response)
     }
@@ -108,7 +102,7 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         // Note: worth having a timeout to prevent people from changing too frequently.
         val rendered = setNicknameGradient(player.uniqueId, player.username, *colors)
         val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Your username has been set to $rendered".miniMessageDeserialize()
+            "Your nickname has been set to $rendered".miniMessageDeserialize()
         )
         player.sendMessage(response)
     }
@@ -121,18 +115,28 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         val targetUuid = chattORE.database.usernameToUuidCache[target]
             ?: throw ChattoreException("We do not recognize that user!")
         val rendered = setNicknameGradient(targetUuid, target, *colors)
+        sendPlayerNotifications(target, player, targetUuid, rendered)
+    }
+
+    private fun sendPlayerNotifications(target: String, executor: Player, targetUuid: UUID, rendered: String) {
         val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Your username has been set to $rendered".miniMessageDeserialize()
+            "Set nickname for $target as $rendered.".miniMessageDeserialize()
         )
-        player.sendMessage(response)
+        executor.sendMessage(response)
+        chattORE.proxy.getPlayer(targetUuid).ifPresent {
+            it.sendMessage(
+                chattORE.config[ChattORESpec.format.chattore].render(
+                    "Your nickname has been set to $rendered".miniMessageDeserialize()
+                )
+            )
+        }
     }
 
     private fun setNicknameGradient(uniqueId: UUID, username: String, vararg colors: String): String {
-        // TODO Validate input. Add support for hex and legacy codes
-        val colors = colors.map { Color.decode(it) }
-        val nameGradient = NameGradient(username, *colors.toTypedArray())
-        val rendered = nameGradient.getRendered()
-        chattORE.database.setNickname(uniqueId, rendered)
-        return rendered
+        val codes = colors.map { it.validateColor() }
+        val tag = "<gradient:${codes.joinToString(':'.toString())}>"
+        val nickname = "$tag$username<reset>"
+        chattORE.database.setNickname(uniqueId, nickname)
+        return nickname
     }
 }
