@@ -1,5 +1,6 @@
 package chattore
 
+import chattore.commands.MailboxItem
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -127,17 +128,21 @@ class Storage(
         }
     }
 
-    fun getMessages(recipient: UUID) = transaction(database) {
+    fun getMessages(recipient: UUID): List<MailboxItem> = transaction(database) {
         Mail.select { Mail.recipient eq recipient.toString() }
-    }
-
-    fun markRead(id: Int, read: Boolean) = transaction(database) {
-        Mail.update({Mail.id eq id}) {
-            it[this.read] = read
+            .orderBy(Mail.timestamp to SortOrder.DESC) .map {
+            MailboxItem(
+                it[Mail.id],
+                it[Mail.timestamp],
+                UUID.fromString(it[Mail.sender]),
+                it[Mail.read]
+            )
         }
     }
 
-    fun getMail(recipient: UUID) = transaction(database) {
-        Mail.select { Mail.recipient eq recipient.toString() }.toList()
+    private fun markRead(id: Int, read: Boolean) = transaction(database) {
+        Mail.update({Mail.id eq id}) {
+            it[this.read] = read
+        }
     }
 }
