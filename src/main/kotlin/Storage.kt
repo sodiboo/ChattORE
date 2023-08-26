@@ -5,6 +5,12 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.UUID
 
+object About : Table("about") {
+    val uuid = varchar("about_uuid", 36).index()
+    val about = varchar("about_about", 512)
+    override val primaryKey = PrimaryKey(uuid)
+}
+
 object Mail : Table("mail") {
     val id = integer("mail_id").autoIncrement()
     val timestamp = integer("mail_timestamp")
@@ -39,7 +45,24 @@ class Storage(
     }
 
     private fun initTables() = transaction(database) {
-        SchemaUtils.create(Mail, Nick, UsernameCache)
+        SchemaUtils.create(About, Mail, Nick, UsernameCache)
+    }
+
+    fun setAbout(uuid: UUID, about: String) = transaction(database) {
+        if (About.select { About.uuid eq uuid.toString() }.count() == 0L) {
+            About.insert {
+                it[this.uuid] = uuid.toString()
+                it[this.about] = about
+            }
+        } else {
+            About.update({ About.uuid eq uuid.toString() }) {
+                it[this.about] = about
+            }
+        }
+    }
+
+    fun getAbout(uuid: UUID) : String? = transaction(database) {
+        About.select { About.uuid eq uuid.toString() }.firstOrNull()?.let { it[About.about] }
     }
 
     fun removeNickname(target: UUID) = transaction(database) {

@@ -29,6 +29,8 @@ object ChattORESpec : ConfigSpec("") {
         val messageReceived by optional("<gold>[</gold><red><sender></red> <gold>-></gold> <red>me</red><gold>]</gold> <message>")
         val messageSent by optional("<gold>[</gold><red>me</red> <gold>-></gold> <red><recipient></red><gold>]</gold> <message>")
         val me by optional("<i>* <blue><sender> <message></blue> *</i>")
+        // Other Roles: <alt_ranks><newline>
+        val playerProfile by optional("<gold><st>  </st> Player Profile <st>  </st></gold><newline>IGN: <ign><newline>Nickname: <nickname><newline>Rank: <rank><newline><gold><st>                        </st></gold><newline>About me: <yellow><about><reset><newline><gold><st>                        </st></gold>")
         val socialSpy by optional("<gold>[</gold><sender> <gold>-></gold> <red><recipient></red><gold>]</gold> <message>")
         val commandSpy by optional("<gold><sender>: <message>")
         val error by optional("<b><red>Oh NO ! </red></b><gray>:</gray> <red><message></red>")

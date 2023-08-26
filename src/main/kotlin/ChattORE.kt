@@ -20,9 +20,12 @@ import chattore.listener.ChatListener
 import chattore.listener.DiscordListener
 import com.velocitypowered.api.proxy.Player
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.luckperms.api.LuckPerms
 import net.luckperms.api.LuckPermsProvider
+import net.luckperms.api.model.user.User
 import org.javacord.api.DiscordApi
 import org.javacord.api.DiscordApiBuilder
 import org.javacord.api.entity.channel.TextChannel
@@ -51,6 +54,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
     private var discordMap: Map<String, DiscordApi> = hashMapOf()
     private val dataFolder = dataFolder.toFile()
+    private val uuidRegex = """[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}""".toRegex()
 
     @Subscribe
     fun onProxyInitialization(event: ProxyInitializeEvent) {
@@ -62,12 +66,16 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             registerCommand(HelpOp(this@ChattORE))
             registerCommand(Me(config, this@ChattORE))
             registerCommand(Message(config, this@ChattORE, replyMap))
+            registerCommand(Profile(this@ChattORE))
             registerCommand(Reply(config, this@ChattORE, replyMap))
             registerCommand(Mail(this@ChattORE))
             registerCommand(Nick(this@ChattORE))
             setDefaultExceptionHandler(::handleCommandException, false)
             commandCompletions.registerCompletion("bool") { listOf("true", "false")}
             commandCompletions.registerCompletion("usernameCache") { database.uuidToUsernameCache.values }
+            commandCompletions.registerCompletion("uuidAndUsernameCache") {
+                database.uuidToUsernameCache.values + database.uuidToUsernameCache.keys.map { it.toString() }
+            }
         }
         if (config[ChattORESpec.discord.enable]) {
             discordMap = loadDiscordTokens()
@@ -79,6 +87,38 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             }
         }
         proxy.eventManager.register(this, ChatListener(this))
+    }
+
+    fun parsePlayerProfile(user: User, ign: String): Component {
+        var group = user.primaryGroup
+        this.luckPerms.groupManager.getGroup(user.primaryGroup)?.let {
+            it.cachedData.metaData.prefix?.let { prefix -> group = prefix }
+        }
+        return config[ChattORESpec.format.playerProfile].render(
+            mapOf(
+                "about" to (this.database.getAbout(user.uniqueId) ?: "no about yet :(").toComponent(),
+                "ign" to ign.toComponent(),
+                "nickname" to (this.database.getNickname(user.uniqueId) ?: "No nickname set").miniMessageDeserialize(),
+                "rank" to group.legacyDeserialize(),
+            )
+        )
+    }
+
+    fun getUsernameAndUuid(input: String): Pair<String, UUID> {
+        var ign = input // Assume target is the IGN
+        val uuid: UUID
+        if (this.database.usernameToUuidCache.containsKey(ign)) {
+            uuid = this.database.usernameToUuidCache.getValue(ign)
+        } else {
+            if (!uuidRegex.matches(input)) {
+                throw ChattoreException("Invalid target specified")
+            }
+            uuid = UUID.fromString(input)
+            val fetchedName = this.database.uuidToUsernameCache[uuid]
+                ?: throw ChattoreException("We do not recognize that user!")
+            ign = fetchedName
+        }
+        return Pair(ign, uuid)
     }
 
     private fun loadDiscordTokens(): Map<String, DiscordApi> {
@@ -127,12 +167,18 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         val userManager = luckPerms.userManager
         val luckUser = userManager.getUser(user) ?: return
         val name = this.database.getNickname(user) ?: this.proxy.getPlayer(user).get().username
+        val player = this.proxy.getPlayer(user).get()
+        val sender = name.miniMessageDeserialize().hoverEvent(
+            HoverEvent.showText("${player.username} | <i>Click for more</i>".miniMessageDeserialize())
+        ).clickEvent(
+            ClickEvent.runCommand("/playerprofile info ${player.username}")
+        )
         val prefix = luckUser.cachedData.metaData.prefix ?: return
         broadcast(
             config[ChattORESpec.format.global].render(
                 mapOf(
                     "message" to message.extractUrls(),
-                    "sender" to name.miniMessageDeserialize(),
+                    "sender" to sender,
                     "prefix" to prefix.legacyDeserialize()
                 )
             )
