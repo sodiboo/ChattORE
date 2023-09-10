@@ -50,9 +50,9 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     lateinit var luckPerms: LuckPerms
     lateinit var config: Config
     lateinit var database: Storage
-    private var offlineMap = hashMapOf<String, UUID>()
     private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
     private var discordMap: Map<String, DiscordApi> = hashMapOf()
+    private var emojis: Map<String, String> = hashMapOf()
     private val dataFolder = dataFolder.toFile()
     private val uuidRegex = """[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}""".toRegex()
 
@@ -84,6 +84,12 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
                 channel.asTextChannel().ifPresent { textChannel ->
                     textChannel.addMessageCreateListener(DiscordListener(this))
                 }
+            }
+        }
+        dataFolder.resolve("emojis.csv").inputStream().let {
+            emojis = it.reader().readLines().associate { item ->
+                val parts = item.split(",")
+                parts[0] to parts[1]
             }
         }
         proxy.eventManager.register(this, ChatListener(this))
@@ -177,7 +183,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         broadcast(
             config[ChattORESpec.format.global].render(
                 mapOf(
-                    "message" to message.extractUrls(),
+                    "message" to message.prepareChatMessage(emojis),
                     "sender" to sender,
                     "prefix" to prefix.legacyDeserialize()
                 )
@@ -205,7 +211,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             config[ChattORESpec.format.discord].render(
                 mapOf(
                     "sender" to sender.toComponent(),
-                    "message" to message.toComponent()
+                    "message" to message.prepareChatMessage(emojis)
                 )
             )
         )

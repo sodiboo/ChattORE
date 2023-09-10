@@ -19,28 +19,32 @@ val urlRegex = """(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\
 fun String.legacyDeserialize() = LegacyComponentSerializer.legacy('&').deserialize(this)
 fun String.miniMessageDeserialize() = MiniMessage.miniMessage().deserialize(this)
 fun String.toComponent() = Component.text(this)
-fun String.extractUrls(): Component {
+val emojiRegex = """:([A-Za-z0-9_]+):""".toRegex()
+fun String.replaceEmojis(emojis: Map<String, String>): String =
+    emojiRegex.replace(this) { matchResult ->
+        val capturedText = matchResult.groupValues[1]
+        emojis[capturedText] ?: ":$capturedText:"
+    }
+fun String.prepareChatMessage(emojis: Map<String, String>): Component {
     // "google.com" gets cut to "google.co"
     val parts = urlRegex.split(this)
     val matches = urlRegex.findAll(this).iterator()
     val buildore = Component.text()
     parts.forEach {
-        buildore.append(it.legacyDeserialize())
+        buildore.append(it.replaceEmojis(emojis).legacyDeserialize())
         if (matches.hasNext()) {
             val nextMatch = matches.next()
             buildore.append(
                 (
                     "<aqua><click:open_url:${nextMatch.value.removeSuffix('/'.toString())}>" +
                     "<hover:show_text:'<aqua>${nextMatch.value}'>" +
-                    "[${nextMatch.groupValues[2]} ↩]" +
+                    "[⬈] ${nextMatch.groupValues[2]}" +
                     "</hover>" +
                     "</click><reset>"
                 ).miniMessageDeserialize()
             )
         }
     }
-    if (parts.size > 1)
-        buildore.append(parts.last().legacyDeserialize())
     return buildore.build()
 }
 
