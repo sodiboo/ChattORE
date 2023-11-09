@@ -1,4 +1,4 @@
-package chattore;
+package chattore
 
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.CommandIssuer
@@ -61,22 +61,6 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         config = loadConfig()
         luckPerms = LuckPermsProvider.get()
         database = Storage(this.dataFolder.resolve(config[ChattORESpec.storage]).toString())
-        VelocityCommandManager(proxy, this).apply {
-            registerCommand(Chattore(this@ChattORE))
-            registerCommand(HelpOp(this@ChattORE))
-            registerCommand(Me(config, this@ChattORE))
-            registerCommand(Message(config, this@ChattORE, replyMap))
-            registerCommand(Profile(this@ChattORE))
-            registerCommand(Reply(config, this@ChattORE, replyMap))
-            registerCommand(Mail(this@ChattORE))
-            registerCommand(Nick(this@ChattORE))
-            setDefaultExceptionHandler(::handleCommandException, false)
-            commandCompletions.registerCompletion("bool") { listOf("true", "false")}
-            commandCompletions.registerCompletion("usernameCache") { database.uuidToUsernameCache.values }
-            commandCompletions.registerCompletion("uuidAndUsernameCache") {
-                database.uuidToUsernameCache.values + database.uuidToUsernameCache.keys.map { it.toString() }
-            }
-        }
         if (config[ChattORESpec.discord.enable]) {
             discordMap = loadDiscordTokens()
             discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
@@ -90,6 +74,24 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             emojis = it.reader().readLines().associate { item ->
                 val parts = item.split(",")
                 parts[0] to parts[1]
+            }
+        }
+        VelocityCommandManager(proxy, this).apply {
+            registerCommand(Chattore(this@ChattORE))
+            registerCommand(Emoji(this@ChattORE, emojis))
+            registerCommand(HelpOp(this@ChattORE))
+            registerCommand(Mail(this@ChattORE))
+            registerCommand(Me(config, this@ChattORE))
+            registerCommand(Message(config, this@ChattORE, replyMap))
+            registerCommand(Nick(this@ChattORE))
+            registerCommand(Profile(this@ChattORE))
+            registerCommand(Reply(config, this@ChattORE, replyMap))
+            setDefaultExceptionHandler(::handleCommandException, false)
+            commandCompletions.registerCompletion("bool") { listOf("true", "false")}
+            commandCompletions.registerCompletion("emojis") { emojis.keys }
+            commandCompletions.registerCompletion("usernameCache") { database.uuidToUsernameCache.values }
+            commandCompletions.registerCompletion("uuidAndUsernameCache") {
+                database.uuidToUsernameCache.values + database.uuidToUsernameCache.keys.map { it.toString() }
             }
         }
         proxy.eventManager.register(this, ChatListener(this))
