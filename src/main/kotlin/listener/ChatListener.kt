@@ -9,6 +9,8 @@ import com.velocitypowered.api.proxy.Player
 import chattore.entity.ChattORESpec
 import chattore.render
 import chattore.toComponent
+import com.velocitypowered.api.event.connection.DisconnectEvent
+import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.player.ServerPreConnectEvent
 
 class ChatListener(
@@ -25,6 +27,24 @@ class ChatListener(
         chattORE.database.ensureCachedUsername(
             event.player.uniqueId,
             event.player.username
+        )
+    }
+
+    @Subscribe
+    fun joinMessage(event: PostLoginEvent) {
+        chattORE.broadcast(
+            chattORE.config[ChattORESpec.format.join].render(mapOf(
+                "player" to event.player.username.toComponent()
+            ))
+        )
+    }
+
+    @Subscribe
+    fun leaveMessage(event: DisconnectEvent) {
+        chattORE.broadcast(
+            chattORE.config[ChattORESpec.format.leave].render(mapOf(
+                "player" to event.player.username.toComponent()
+            ))
         )
     }
 

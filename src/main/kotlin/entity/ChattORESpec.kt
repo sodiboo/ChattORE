@@ -36,5 +36,7 @@ object ChattORESpec : ConfigSpec("") {
         val error by optional("<b><red>Oh NO ! </red></b><gray>:</gray> <red><message></red>")
         val chattore by optional("<gold>[</gold><red>ChattORE</red><gold>]</gold> <red><message></red>")
         val help by optional("<gold>[</gold><red>Help</red><gold>]</gold> <red><sender></red><gold>:</gold> <message>")
+        val join by optional("<yellow><player> has joined the network")
+        val leave by optional("<yellow><player> has left the network")
     }
 }
