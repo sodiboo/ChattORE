@@ -22,7 +22,15 @@ class Message(
     @CommandCompletion("@players")
     fun default(player: Player, target: String, args: Array<String>) {
         chattORE.proxy.getPlayer(target).ifPresentOrElse({ targetPlayer ->
-            sendMessage(chattORE.logger, replyMap, config, player, targetPlayer, args)
+            sendMessage(
+                chattORE.logger,
+                replyMap,
+                config,
+                player,
+                targetPlayer,
+                args,
+                chattORE.config[ChattORESpec.format.error]
+            )
         }, {
             throw ChattoreException("That user doesn't exist!")
         })
@@ -36,9 +44,16 @@ fun sendMessage(
     config: Config,
     player: Player,
     targetPlayer: Player,
-    args: Array<String>
+    args: Array<String>,
+    errorTemplate: String
 ) {
-    val statement = args.joinToString(" ")
+    var statement = args.joinToString(" ")
+    if (!player.hasPermission("chattore.chat.obfuscate")) {
+        player.sendMessage(errorTemplate.render(mapOf(
+            "message" to "You do not have permission to obfuscate text!".toComponent()
+        )))
+        statement = statement.replace("&k", "")
+    }
     logger.info("${player.username} -> ${targetPlayer.username}: $statement")
     player.sendMessage(
         config[ChattORESpec.format.messageSent].render(
