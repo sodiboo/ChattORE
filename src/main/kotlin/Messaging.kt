@@ -1,6 +1,7 @@
-package chattore;
+package chattore
 
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
@@ -15,51 +16,45 @@ fun String.componentize(): Component =
         .build()
         .deserialize(fixHexFormatting(this))
 
-val urlRegex = """(http|https)://([\w_-]+(?:\.[\w_-]+)+)(\S+)?""".toRegex()
 fun String.legacyDeserialize() = LegacyComponentSerializer.legacy('&').deserialize(this)
 fun String.miniMessageDeserialize() = MiniMessage.miniMessage().deserialize(this)
 fun String.toComponent() = Component.text(this)
-val emojiRegex = """:([A-Za-z0-9_]+):""".toRegex()
-fun String.replaceEmojis(emojis: Map<String, String>): Component {
-    val parts = emojiRegex.split(this)
-    val matches = emojiRegex.findAll(this).iterator()
-    val buildore = Component.text()
-    parts.forEach {
-        buildore.append(it.legacyDeserialize())
-        if (matches.hasNext()) {
-            val capturedText = matches.next().groupValues[1]
-            val message = if (capturedText in emojis) {
-                "<hover:show_text:'$capturedText'>${emojis[capturedText]}</hover>"
-            } else {
-                ":$capturedText:"
-            }
-            buildore.append(message.miniMessageDeserialize())
-        }
-    }
-    return buildore.build()
-}
 
-fun String.prepareChatMessage(emojis: Map<String, String>): Component {
-    // "google.com" gets cut to "google.co"
-    val parts = urlRegex.split(this)
-    val matches = urlRegex.findAll(this).iterator()
-    val buildore = Component.text()
-    parts.forEach {
-        buildore.append(it.replaceEmojis(emojis))
-        if (matches.hasNext()) {
-            val nextMatch = matches.next()
-            buildore.append(
-                (
-                    "<aqua><click:open_url:${nextMatch.value.removeSuffix('/'.toString())}>" +
-                    "<hover:show_text:'<aqua>${nextMatch.value}'>" +
-                    "[⬈] ${nextMatch.groupValues[2]}" +
-                    "</hover>" +
-                    "</click><reset>"
-                ).miniMessageDeserialize()
-            )
+fun buildEmojiReplacement(emojis: Map<String, String>): TextReplacementConfig =
+    TextReplacementConfig.builder()
+        .match(""":([A-Za-z0-9_]+):""")
+        .replacement { result, _ ->
+            val match = result.group(1)
+            val content = emojis[match] ?: ":$match:"
+            "<hover:show_text:'$match'>$content</hover>".miniMessageDeserialize()
         }
+        .build()
+
+fun formatReplacement(key: String, tag: String): TextReplacementConfig =
+    TextReplacementConfig.builder()
+        .match("${key}(.*?)${key}")
+        .replacement { result, _ ->
+            "<$tag>${result.group(1)}</$tag>".miniMessageDeserialize()
+        }
+        .build()
+
+val urlReplacementConfig: TextReplacementConfig = TextReplacementConfig.builder()
+    .match("""(http|https)://([\w_-]+(?:\.[\w_-]+)+)(\S+)?""")
+    .replacement{ result, _ -> (
+        "<aqua><click:open_url:${result.group(0)}>" +
+        "<hover:show_text:'<aqua>${result.group(0)}'>" +
+        "[⬈] ${result.group(2)}" +
+        "</hover>" +
+        "</click><reset>"
+    ).miniMessageDeserialize()}
+    .build()
+
+fun String.prepareChatMessage(replacements: List<TextReplacementConfig>): Component {
+    var result: Component = this.legacyDeserialize()
+    replacements.forEach { replacement ->
+        result = result.replaceText(replacement)
     }
-    return buildore.build()
+    return result
 }
 
 fun String.render(
