@@ -20,18 +20,32 @@ fun String.legacyDeserialize() = LegacyComponentSerializer.legacy('&').deseriali
 fun String.miniMessageDeserialize() = MiniMessage.miniMessage().deserialize(this)
 fun String.toComponent() = Component.text(this)
 val emojiRegex = """:([A-Za-z0-9_]+):""".toRegex()
-fun String.replaceEmojis(emojis: Map<String, String>): String =
-    emojiRegex.replace(this) { matchResult ->
-        val capturedText = matchResult.groupValues[1]
-        emojis[capturedText] ?: ":$capturedText:"
+fun String.replaceEmojis(emojis: Map<String, String>): Component {
+    val parts = emojiRegex.split(this)
+    val matches = emojiRegex.findAll(this).iterator()
+    val buildore = Component.text()
+    parts.forEach {
+        buildore.append(it.legacyDeserialize())
+        if (matches.hasNext()) {
+            val capturedText = matches.next().groupValues[1]
+            val message = if (capturedText in emojis) {
+                "<hover:show_text:'$capturedText'>${emojis[capturedText]}</hover>"
+            } else {
+                ":$capturedText:"
+            }
+            buildore.append(message.miniMessageDeserialize())
+        }
     }
+    return buildore.build()
+}
+
 fun String.prepareChatMessage(emojis: Map<String, String>): Component {
     // "google.com" gets cut to "google.co"
     val parts = urlRegex.split(this)
     val matches = urlRegex.findAll(this).iterator()
     val buildore = Component.text()
     parts.forEach {
-        buildore.append(it.replaceEmojis(emojis).legacyDeserialize())
+        buildore.append(it.replaceEmojis(emojis))
         if (matches.hasNext()) {
             val nextMatch = matches.next()
             buildore.append(
