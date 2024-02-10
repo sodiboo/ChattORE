@@ -15,7 +15,7 @@ fun String.componentize(): Component =
         .build()
         .deserialize(fixHexFormatting(this))
 
-val urlRegex = """(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])""".toRegex()
+val urlRegex = """(http|https)://([\w_-]+(?:\.[\w_-]+)+)(\S+)?""".toRegex()
 fun String.legacyDeserialize() = LegacyComponentSerializer.legacy('&').deserialize(this)
 fun String.miniMessageDeserialize() = MiniMessage.miniMessage().deserialize(this)
 fun String.toComponent() = Component.text(this)
