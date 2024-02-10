@@ -5,7 +5,6 @@ import chattore.entity.ChattORESpec
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
 import com.velocitypowered.api.proxy.Player
-import net.kyori.adventure.text.minimessage.MiniMessage
 import java.util.*
 
 // TODO: 8/23/2023 Add to autocompletes?
@@ -63,7 +62,7 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         } else {
             nick.miniMessageDeserialize()
         }
-        val rendered = MiniMessage.miniMessage().serialize(nickname)
+        val rendered = nickname.miniMessageSerialize()
         chattORE.database.setNickname(targetUuid, rendered)
         sendPlayerNotifications(target, player, targetUuid, rendered)
     }

@@ -18,6 +18,7 @@ fun String.componentize(): Component =
 
 fun String.legacyDeserialize() = LegacyComponentSerializer.legacy('&').deserialize(this)
 fun String.miniMessageDeserialize() = MiniMessage.miniMessage().deserialize(this)
+fun Component.miniMessageSerialize() = MiniMessage.miniMessage().serialize(this)
 fun String.toComponent() = Component.text(this)
 
 fun buildEmojiReplacement(emojis: Map<String, String>): TextReplacementConfig =
