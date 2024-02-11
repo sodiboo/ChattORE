@@ -54,6 +54,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
     private var discordMap: Map<String, DiscordApi> = hashMapOf()
     private var emojis: Map<String, String> = hashMapOf()
+    private var emojisToNames: Map<String, String> = hashMapOf()
     private val dataFolder = dataFolder.toFile()
     private val uuidRegex = """[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}""".toRegex()
     private var chatReplacements: MutableList<TextReplacementConfig> = mutableListOf(
@@ -69,21 +70,22 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         config = loadConfig()
         luckPerms = LuckPermsProvider.get()
         database = Storage(this.dataFolder.resolve(config[ChattORESpec.storage]).toString())
+        dataFolder.resolve("emojis.csv").inputStream().let { inputStream ->
+            emojis = inputStream.reader().readLines().associate { item ->
+                val parts = item.split(",")
+                parts[0] to parts[1]
+            }
+            emojisToNames = emojis.entries.associateBy({ it.value }) { it.key }
+            chatReplacements.add(buildEmojiReplacement(emojis))
+        }
         if (config[ChattORESpec.discord.enable]) {
             discordMap = loadDiscordTokens()
             discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
             discordMap.values.firstOrNull()?.getChannelById(config[ChattORESpec.discord.channelId])?.ifPresent { channel ->
                 channel.asTextChannel().ifPresent { textChannel ->
-                    textChannel.addMessageCreateListener(DiscordListener(this))
+                    textChannel.addMessageCreateListener(DiscordListener(this, emojisToNames))
                 }
             }
-        }
-        dataFolder.resolve("emojis.csv").inputStream().let {
-            emojis = it.reader().readLines().associate { item ->
-                val parts = item.split(",")
-                parts[0] to parts[1]
-            }
-            chatReplacements.add(buildEmojiReplacement(emojis))
         }
         VelocityCommandManager(proxy, this).apply {
             registerCommand(Chattore(this@ChattORE))
@@ -153,6 +155,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         return config[ChattORESpec.discord.serverTokens].mapValues { (_, token) ->
             DiscordApiBuilder()
                 .setToken(token)
+                .setAllIntents()
                 .login()
                 .join()
         }
@@ -211,7 +214,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         val plainPrefix = PlainTextComponentSerializer.plainText().serialize(prefix.componentize())
         val content = config[ChattORESpec.discord.format]
             .replace("%prefix%", plainPrefix)
-            .replace("%sender%", name)
+            .replace("%sender%", this.proxy.getPlayer(user).get().username)
             .replace("%message%", message)
         val discordMessage = MessageBuilder().setContent(content)
         discordMessage.send(channel)

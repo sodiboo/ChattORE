@@ -5,6 +5,7 @@ import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import java.net.URL
 
 fun fixHexFormatting(str: String): String = str.replace(Regex("#([0-9a-f]{6})")) { "&${it.groupValues.first()}" }
 
@@ -41,13 +42,34 @@ fun formatReplacement(key: String, tag: String): TextReplacementConfig =
 
 val urlReplacementConfig: TextReplacementConfig = TextReplacementConfig.builder()
     .match("""(http|https)://([\w_-]+(?:\.[\w_-]+)+)(\S+)?""")
-    .replacement{ result, _ -> (
-        "<aqua><click:open_url:${result.group(0)}>" +
-        "<hover:show_text:'<aqua>${result.group(0)}'>" +
-        "[⬈] ${result.group(2)}" +
+    .replacement{ result, _ ->
+        val link = URL(result.group(0))
+        var type = "link"
+        var name = link.host
+        if (link.file.isNotEmpty()) {
+            val last = link.path.split("/").last()
+            if (last.contains('.')) {
+                type = last.split('.').last()
+                name = if (last.length > 20) {
+                    last.substring(0, 20) + "…." + type
+                } else {
+                    last
+                }
+            }
+        }
+        val symbol = when (type) {
+            "png", "jpg", "jpeg", "gif", "svg" -> "\uD83D\uDDBC"
+            "mp3", "m4a", "flac", "wav" -> "\uD83D\uDCDD"
+            "mp4", "mov", "avi", "wmv", "avchd", "webm", "flv" -> "\uD83C\uDFA5"
+            "txt", "log", "rtf", "docx", "pdf", "md" -> "\uD83C\uDFA5"
+            else -> "\uD83D\uDCCE"
+        }
+        ("<aqua><click:open_url:$link>" +
+        "<hover:show_text:'<aqua>$link'>" +
+        "[$symbol $name]" +
         "</hover>" +
-        "</click><reset>"
-    ).miniMessageDeserialize()}
+        "</click><reset>").miniMessageDeserialize()
+    }
     .build()
 
 fun String.prepareChatMessage(replacements: List<TextReplacementConfig>): Component {

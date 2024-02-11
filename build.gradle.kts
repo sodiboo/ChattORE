@@ -38,7 +38,7 @@ dependencies {
     implementation(group = "org.jetbrains.exposed", name = "exposed-java-time", version = "0.40.1")
     implementation(group = "org.xerial", name = "sqlite-jdbc", version = "3.30.1")
     implementation(group = "co.aikar", name = "acf-velocity", version = "0.5.1-SNAPSHOT")
-    implementation(group = "org.javacord", name = "javacord", version = "3.3.2")
+    implementation(group = "org.javacord", name = "javacord", version = "3.8.0")
     implementation(group = "com.velocitypowered", name = "velocity-api", version = "3.2.0-SNAPSHOT")
     kapt(group = "com.velocitypowered", name = "velocity-api", version = "3.2.0-SNAPSHOT")
 }
