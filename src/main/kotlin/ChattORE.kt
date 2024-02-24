@@ -214,7 +214,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         val plainPrefix = PlainTextComponentSerializer.plainText().serialize(prefix.componentize())
         val content = config[ChattORESpec.discord.format]
             .replace("%prefix%", plainPrefix)
-            .replace("%sender%", this.proxy.getPlayer(user).get().username)
+            .replace("%sender%", this.proxy.getPlayer(user).get().username.discordEscape())
             .replace("%message%", message)
         val discordMessage = MessageBuilder().setContent(content)
         discordMessage.send(channel)
