@@ -41,7 +41,7 @@ fun formatReplacement(key: String, tag: String): TextReplacementConfig =
         }
         .build()
 
-val urlReplacementConfig: TextReplacementConfig = TextReplacementConfig.builder()
+fun urlReplacementConfig(fileTypeMap: Map<String, List<String>>): TextReplacementConfig = TextReplacementConfig.builder()
     .match("""(http|https)://([\w_-]+(?:\.[\w_-]+)+)(\S+)?""")
     .replacement{ result, _ ->
         val link = URL(result.group(0))
@@ -58,11 +58,12 @@ val urlReplacementConfig: TextReplacementConfig = TextReplacementConfig.builder(
                 }
             }
         }
-        val symbol = when (type) {
-            "png", "jpg", "jpeg", "gif", "svg" -> "\uD83D\uDDBC"
-            "mp3", "m4a", "flac", "wav" -> "\uD83D\uDCDD"
-            "mp4", "mov", "avi", "wmv", "avchd", "webm", "flv" -> "\uD83C\uDFA5"
-            "txt", "log", "rtf", "docx", "pdf", "md" -> "\uD83C\uDFA5"
+        val contentType = fileTypeMap.entries.find { type in it.value }?.key
+        val symbol = when (contentType) {
+            "IMAGE" -> "\uD83D\uDDBC"
+            "AUDIO" -> "\uD83D\uDD0A"
+            "VIDEO" -> "\uD83C\uDFA5"
+            "TEXT" -> "\uD83D\uDCDD"
             else -> "\uD83D\uDCCE"
         }
         ("<aqua><click:open_url:$link>" +

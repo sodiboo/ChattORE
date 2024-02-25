@@ -19,6 +19,10 @@ import chattore.entity.ChattORESpec
 import chattore.listener.ChatListener
 import chattore.listener.DiscordListener
 import com.velocitypowered.api.proxy.Player
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.event.ClickEvent
@@ -61,8 +65,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         formatReplacement("\\*\\*", "b"),
         formatReplacement("\\*", "i"),
         formatReplacement("__", "u"),
-        formatReplacement("~~", "st"),
-        urlReplacementConfig
+        formatReplacement("~~", "st")
     )
 
     @Subscribe
@@ -70,13 +73,24 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         config = loadConfig()
         luckPerms = LuckPermsProvider.get()
         database = Storage(this.dataFolder.resolve(config[ChattORESpec.storage]).toString())
-        dataFolder.resolve("emojis.csv").inputStream().let { inputStream ->
+        this.javaClass.getResourceAsStream("/emojis.csv")?.let { inputStream ->
             emojis = inputStream.reader().readLines().associate { item ->
                 val parts = item.split(",")
                 parts[0] to parts[1]
             }
             emojisToNames = emojis.entries.associateBy({ it.value }) { it.key }
             chatReplacements.add(buildEmojiReplacement(emojis))
+            logger.info("Loaded ${emojis.size} emojis")
+        }
+        this.javaClass.getResourceAsStream("/filetypes.json")?.let { inputStream ->
+            val jsonElement = Json.parseToJsonElement(inputStream.reader().readText())
+            val fileTypeMap = jsonElement.jsonObject.mapValues { (_, value) ->
+                value.jsonArray.map { it.jsonPrimitive.content }
+            }
+            chatReplacements.add(urlReplacementConfig(fileTypeMap))
+            fileTypeMap.forEach { (key, values) ->
+                logger.info("Loaded ${values.size} of type $key")
+            }
         }
         if (config[ChattORESpec.discord.enable]) {
             discordMap = loadDiscordTokens()
