@@ -55,6 +55,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     lateinit var luckPerms: LuckPerms
     lateinit var config: Config
     lateinit var database: Storage
+    lateinit var discordNetwork: DiscordApi
     private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
     private var discordMap: Map<String, DiscordApi> = hashMapOf()
     private var emojis: Map<String, String> = hashMapOf()
@@ -93,6 +94,11 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             }
         }
         if (config[ChattORESpec.discord.enable]) {
+            discordNetwork = DiscordApiBuilder()
+                .setToken(config[ChattORESpec.discord.networkToken])
+                .setAllIntents()
+                .login()
+                .join()
             discordMap = loadDiscordTokens()
             discordMap.forEach { (_, discordApi) -> discordApi.updateActivity(config[ChattORESpec.discord.playingMessage]) }
             discordMap.values.firstOrNull()?.getChannelById(config[ChattORESpec.discord.channelId])?.ifPresent { channel ->
@@ -197,6 +203,12 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         proxy.allPlayers.forEach { it.sendMessage(component) }
     }
 
+    fun broadcastPlayerConnection(message: String) {
+        discordNetwork.getTextChannelById(config[ChattORESpec.discord.channelId]).ifPresent {
+            it.sendMessage(message)
+        }
+    }
+
     fun broadcastChatMessage(originServer: String, user: UUID, message: String) {
         val userManager = luckPerms.userManager
         val luckUser = userManager.getUser(user) ?: return
@@ -219,11 +231,10 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         )
 
         val discordApi = discordMap[originServer] ?: return
-        val channel =
-            discordApi.getChannelById(config[ChattORESpec.discord.channelId]).orElse(null) as? TextChannel ?: run {
-                logger.error("Could not get specified discord channel")
-                return
-            }
+        val channel = discordApi.getTextChannelById(config[ChattORESpec.discord.channelId]).orElse(null) ?: run {
+            logger.error("Could not get specified discord channel")
+            return
+        }
 
         val plainPrefix = PlainTextComponentSerializer.plainText().serialize(prefix.componentize())
         val content = config[ChattORESpec.discord.format]

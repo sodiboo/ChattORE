@@ -38,5 +38,7 @@ object ChattORESpec : ConfigSpec("") {
         val help by optional("<gold>[</gold><red>Help</red><gold>]</gold> <red><sender></red><gold>:</gold> <message>")
         val join by optional("<yellow><player> has joined the network")
         val leave by optional("<yellow><player> has left the network")
+        val joinDiscord by optional("**<player> has joined the network**")
+        val leaveDiscord by optional("**<player> has left the network**")
     }
 }

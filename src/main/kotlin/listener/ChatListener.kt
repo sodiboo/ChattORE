@@ -32,19 +32,33 @@ class ChatListener(
 
     @Subscribe
     fun joinMessage(event: PostLoginEvent) {
+        val username = event.player.username
         chattORE.broadcast(
             chattORE.config[ChattORESpec.format.join].render(mapOf(
-                "player" to event.player.username.toComponent()
+                "player" to username.toComponent()
             ))
+        )
+        chattORE.broadcastPlayerConnection(
+            chattORE.config[ChattORESpec.format.joinDiscord].replace(
+                "<player>",
+                username
+            )
         )
     }
 
     @Subscribe
     fun leaveMessage(event: DisconnectEvent) {
+        val username = event.player.username
         chattORE.broadcast(
             chattORE.config[ChattORESpec.format.leave].render(mapOf(
-                "player" to event.player.username.toComponent()
+                "player" to username.toComponent()
             ))
+        )
+        chattORE.broadcastPlayerConnection(
+            chattORE.config[ChattORESpec.format.leaveDiscord].replace(
+                "<player>",
+                username
+            )
         )
     }
 
