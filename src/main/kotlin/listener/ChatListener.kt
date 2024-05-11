@@ -68,7 +68,7 @@ class ChatListener(
         pp.currentServer.ifPresent { server ->
             chattORE.logger.info("${pp.username}: ${event.message}")
             var result = event.message
-            if (!pp.hasPermission("chattore.chat.obfuscate")) {
+            if (event.message.contains("&k") && !pp.hasPermission("chattore.chat.obfuscate")) {
                 pp.sendMessage(chattORE.config[ChattORESpec.format.error].render(mapOf(
                     "message" to "You do not have permission to obfuscate text!".toComponent()
                 )))
