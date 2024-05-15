@@ -4,6 +4,7 @@ import chattore.*
 import chattore.entity.ChattORESpec
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
+import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.proxy.Player
 import java.util.*
 
@@ -54,9 +55,9 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
     @Subcommand("nick")
     @CommandPermission("chattore.nick.others")
     @CommandCompletion("@usernameCache")
-    fun nick(player: Player, @Single target: String, @Single nick: String) {
-        val targetUuid = chattORE.database.usernameToUuidCache[target]
-            ?: throw ChattoreException("We do not recognize that user!")
+    fun nick(commandSource: CommandSource, @Single target: String, @Single nick: String) {
+        val targetUuid = chattORE.fetchUuid(target)
+            ?: throw ChattoreException("Invalid user!")
         val nickname = if (nick.contains("&")) {
             nick.legacyDeserialize()
         } else {
@@ -64,20 +65,20 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         }
         val rendered = nickname.miniMessageSerialize()
         chattORE.database.setNickname(targetUuid, rendered)
-        sendPlayerNotifications(target, player, targetUuid, rendered)
+        sendPlayerNotifications(target, commandSource, targetUuid, rendered)
     }
 
     @Subcommand("remove")
     @CommandPermission("chattore.nick.remove")
     @CommandCompletion("@usernameCache")
-    fun remove(player: Player, @Single target: String) {
-        val targetUuid = chattORE.database.usernameToUuidCache[target]
-            ?: throw ChattoreException("We do not recognize that user!")
+    fun remove(commandSource: CommandSource, @Single target: String) {
+        val targetUuid = chattORE.fetchUuid(target)
+            ?: throw ChattoreException("Invalid user!")
         chattORE.database.removeNickname(targetUuid)
         val response = chattORE.config[ChattORESpec.format.chattore].render(
             "Removed nickname for $target."
         )
-        player.sendMessage(response)
+        commandSource.sendMessage(response)
     }
 
     @Subcommand("color")
@@ -111,13 +112,13 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
     @CommandCompletion("@usernameCache")
     fun setgradient(player: Player, @Single target: String, vararg colors: String) {
         if (colors.size < 2) throw ChattoreException("Not enough colors!")
-        val targetUuid = chattORE.database.usernameToUuidCache[target]
-            ?: throw ChattoreException("We do not recognize that user!")
+        val targetUuid = chattORE.fetchUuid(target)
+            ?: throw ChattoreException("Invalid user!")
         val rendered = setNicknameGradient(targetUuid, target, *colors)
         sendPlayerNotifications(target, player, targetUuid, rendered)
     }
 
-    private fun sendPlayerNotifications(target: String, executor: Player, targetUuid: UUID, rendered: String) {
+    private fun sendPlayerNotifications(target: String, executor: CommandSource, targetUuid: UUID, rendered: String) {
         val response = chattORE.config[ChattORESpec.format.chattore].render(
             "Set nickname for $target as $rendered.".miniMessageDeserialize()
         )

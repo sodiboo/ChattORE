@@ -160,6 +160,15 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         return Pair(ign, uuid)
     }
 
+    fun fetchUuid(input: String): UUID? =
+        if (this.database.usernameToUuidCache.containsKey(input)) {
+            this.database.usernameToUuidCache.getValue(input)
+        } else if (uuidRegex.matches(input)) {
+            UUID.fromString(input)
+        } else {
+            null
+        }
+
     private fun loadDiscordTokens(): Map<String, DiscordApi> {
         val availableServers = proxy.allServers.map { it.serverInfo.name.lowercase() }.sorted()
         val configServers = config[ChattORESpec.discord.serverTokens].map { it.key.lowercase() }.sorted()
