@@ -33,7 +33,6 @@ import net.luckperms.api.LuckPermsProvider
 import net.luckperms.api.model.user.User
 import org.javacord.api.DiscordApi
 import org.javacord.api.DiscordApiBuilder
-import org.javacord.api.entity.channel.TextChannel
 import org.javacord.api.entity.message.MessageBuilder
 import org.slf4j.Logger
 import java.io.File
@@ -56,6 +55,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     lateinit var config: Config
     lateinit var database: Storage
     lateinit var discordNetwork: DiscordApi
+    val onlinePlayers: MutableSet<UUID> = mutableSetOf()
     private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
     private var discordMap: Map<String, DiscordApi> = hashMapOf()
     private var emojis: Map<String, String> = hashMapOf()

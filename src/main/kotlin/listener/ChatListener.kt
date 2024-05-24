@@ -10,7 +10,7 @@ import chattore.entity.ChattORESpec
 import chattore.render
 import chattore.toComponent
 import com.velocitypowered.api.event.connection.DisconnectEvent
-import com.velocitypowered.api.event.connection.PostLoginEvent
+import com.velocitypowered.api.event.player.ServerPostConnectEvent
 import com.velocitypowered.api.event.player.ServerPreConnectEvent
 
 class ChatListener(
@@ -31,7 +31,9 @@ class ChatListener(
     }
 
     @Subscribe
-    fun joinMessage(event: PostLoginEvent) {
+    fun joinMessage(event: ServerPostConnectEvent) {
+        if (event.player.uniqueId in chattORE.onlinePlayers) return
+        chattORE.onlinePlayers.add(event.player.uniqueId)
         val username = event.player.username
         chattORE.broadcast(
             chattORE.config[ChattORESpec.format.join].render(mapOf(
@@ -48,6 +50,8 @@ class ChatListener(
 
     @Subscribe
     fun leaveMessage(event: DisconnectEvent) {
+        if (event.player.uniqueId !in chattORE.onlinePlayers) return
+        chattORE.onlinePlayers.remove(event.player.uniqueId)
         val username = event.player.username
         chattORE.broadcast(
             chattORE.config[ChattORESpec.format.leave].render(mapOf(
