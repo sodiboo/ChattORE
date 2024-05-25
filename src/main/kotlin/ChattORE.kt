@@ -55,7 +55,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     lateinit var config: Config
     lateinit var database: Storage
     lateinit var discordNetwork: DiscordApi
-    val onlinePlayers: MutableSet<UUID> = mutableSetOf()
+    val onlinePlayers: MutableSet<UUID> = Collections.synchronizedSet(mutableSetOf())
     private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
     private var discordMap: Map<String, DiscordApi> = hashMapOf()
     private var emojis: Map<String, String> = hashMapOf()
