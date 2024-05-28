@@ -107,6 +107,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
                 }
             }
         }
+        this.database.updateLocalUsernameCache()
         VelocityCommandManager(proxy, this).apply {
             registerCommand(Chattore(this@ChattORE))
             registerCommand(Emoji(this@ChattORE, emojis))

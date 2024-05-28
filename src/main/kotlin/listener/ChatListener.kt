@@ -10,6 +10,7 @@ import chattore.entity.ChattORESpec
 import chattore.render
 import chattore.toComponent
 import com.velocitypowered.api.event.connection.DisconnectEvent
+import com.velocitypowered.api.event.connection.LoginEvent
 import com.velocitypowered.api.event.player.ServerPostConnectEvent
 import com.velocitypowered.api.event.player.ServerPreConnectEvent
 
@@ -28,6 +29,14 @@ class ChatListener(
             event.player.uniqueId,
             event.player.username
         )
+    }
+
+    @Subscribe
+    fun joinEvent(event: LoginEvent) {
+        if (!chattORE.config[ChattORESpec.clearNicknameOnChange]) return
+        val existingName = chattORE.database.uuidToUsernameCache[event.player.uniqueId] ?: return
+        if (existingName == event.player.username) return
+        chattORE.database.removeNickname(event.player.uniqueId)
     }
 
     @Subscribe

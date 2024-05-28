@@ -101,7 +101,7 @@ class Storage(
         updateLocalUsernameCache()
     }
 
-    private fun updateLocalUsernameCache() {
+    fun updateLocalUsernameCache() {
         uuidToUsernameCache = transaction(database) {
             UsernameCache.selectAll().associate {
                 UUID.fromString(it[UsernameCache.uuid]) to it[UsernameCache.username]

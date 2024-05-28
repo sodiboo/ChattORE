@@ -5,6 +5,7 @@ import com.uchuhimo.konf.ConfigSpec
 object ChattORESpec : ConfigSpec("") {
 
     val storage by optional("storage.db")
+    val clearNicknameOnChange by optional(true)
 
     object discord : ConfigSpec() {
         val enable by optional(false)
