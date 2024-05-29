@@ -52,6 +52,25 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
 
     // TODO: 8/23/2023 Add timeout map
 
+    @Default
+    fun set(player: Player, vararg colors: String) {
+        // Note: worth having a timeout to prevent people from changing too frequently.
+        if (colors.isEmpty()) throw ChattoreException("No colors provided! Please provide 1 to 3 colors!")
+        val rendered = if (colors.size == 1) {
+            val code = "<${colors.first().validateColor()}>"
+            val nickname = "${code}${player.username}<reset>"
+            chattORE.database.setNickname(player.uniqueId, nickname)
+            nickname
+        } else {
+            if (colors.size > 3) throw ChattoreException("Too many colors!")
+            setNicknameGradient(player.uniqueId, player.username, *colors)
+        }
+        val response = chattORE.config[ChattORESpec.format.chattore].render(
+            "Your nickname has been set to $rendered".miniMessageDeserialize()
+        )
+        player.sendMessage(response)
+    }
+
     @Subcommand("nick")
     @CommandPermission("chattore.nick.others")
     @CommandCompletion("@usernameCache")
@@ -79,32 +98,6 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
             "Removed nickname for $target."
         )
         commandSource.sendMessage(response)
-    }
-
-    @Subcommand("color")
-    @CommandPermission("chattore.nick.color")
-    fun color(player: Player, @Single color: String) {
-        // Note: worth having a timeout to prevent people from changing too frequently.
-        val code = "<${color.validateColor()}>"
-        val nickname = "${code}${player.username}<reset>"
-        chattORE.database.setNickname(player.uniqueId, nickname)
-        val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Set your nickname to $nickname".miniMessageDeserialize()
-        )
-        player.sendMessage(response)
-    }
-
-    @Subcommand("gradient")
-    @CommandPermission("chattore.nick.gradient")
-    fun gradient(player: Player, vararg colors: String) {
-        if (colors.size < 2) throw ChattoreException("Not enough colors!")
-        if (colors.size > 3) throw ChattoreException("Too many colors!")
-        // Note: worth having a timeout to prevent people from changing too frequently.
-        val rendered = setNicknameGradient(player.uniqueId, player.username, *colors)
-        val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Your nickname has been set to $rendered".miniMessageDeserialize()
-        )
-        player.sendMessage(response)
     }
 
     @Subcommand("setgradient")
