@@ -1,12 +1,28 @@
-
-##### Status: ![yes](https://img.shields.io/badge/x-d-green)
-
 # ChattORE
 
 Because we want to have a chat system that actually wOREks for us.
 
-### Note
+## Commands
 
-`emojis.csv` has to be copied to the plugin folder on the proxy for it to be loaded.
+| Command                               | Permission                      | Description                                              | Aliases                                   |
+|---------------------------------------|---------------------------------|----------------------------------------------------------|-------------------------------------------|
+| `/chattore version`                   | `chattore.manage`               | View the version of Chattore                             | No aliases                                |
+| `/chattore reload`                    | `chattore.manage`               | Reload Chattore configuration                            | No aliases                                |
+| `/emoji <emoji_names>+`               | `chattore.emoji`                | View multiple emojis                                     | No aliases                                |
+| `/ac <message>`                       | `chattore.helpop`               | Message ORE Staff                                        | No aliases                                |
+| `/mail mailbox`                       | `chattore.mail`                 | Manage your mailbox                                      | `/mailbox`                                |
+| `/mail send <player> <message>`       | `chattore.mail`                 | Send a mail message                                      | No aliases                                |
+| `/mail read <mail ID>`                | `chattore.mail`                 | Read a mail message (Designed for usage with `/mailbox`) | No aliases                                |
+| `/me <message>`                       | `chattore.me`                   | Have a thought in chat                                   | No aliases                                |
+| `/message <player> <message>`         | `chattore.message`              | Send a message to a player                               | `/msg\|/vmsg\|/vmessage\|/whisper\|/tell` |
+| `/reply <message>`                    | `chattore.reply`                | Reply to a message                                       | No aliases                                |
+| `/profile info <player>`              | `chattore.profile`              | View a player's profile                                  | No aliases                                |
+| `/profile about <player>`             | `chattore.profile.about`        | Set your about                                           | No aliases                                |
+| `/profile setabout <player> <about>`  | `chattore.profile.about.others` | Set another player's about                               | No aliases                                |
+| `/nick nick <player> <nickname>`      | `chattore.nick.others`          | Set a player's nickname                                  | No aliases                                |
+| `/nick remove <player>`               | `chattore.nick.remove`          | Remove a player's nickname                               | No aliases                                |
+| `/nick color <color>`                 | `chattore.nick.color`           | Set your nickname color                                  | No aliases                                |
+| `/nick gradient <color>+`             | `chattore.nick.gradient`        | Set your nickname gradient (between 2-3 colors required) | No aliases                                |
+| `/nick setgradient <player> <color>+` | `chattore.nick.setgradient`     | Set a gradient for a user                                | No aliases                                |
 
 <sub><sub><sub>Work In Progress : )</sub></sub></sub>
