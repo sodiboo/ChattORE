@@ -53,6 +53,7 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
     // TODO: 8/23/2023 Add timeout map
 
     @Default
+    @CommandPermission("chattore.nick.color")
     fun set(player: Player, vararg colors: String) {
         // Note: worth having a timeout to prevent people from changing too frequently.
         if (colors.isEmpty()) throw ChattoreException("No colors provided! Please provide 1 to 3 colors!")
