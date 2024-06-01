@@ -9,10 +9,16 @@ import com.velocitypowered.api.proxy.Player
 import chattore.entity.ChattORESpec
 import chattore.render
 import chattore.toComponent
+import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.command.CommandExecuteEvent
 import com.velocitypowered.api.event.connection.DisconnectEvent
 import com.velocitypowered.api.event.connection.LoginEvent
+import com.velocitypowered.api.event.player.PlayerChatEvent
 import com.velocitypowered.api.event.player.ServerPostConnectEvent
 import com.velocitypowered.api.event.player.ServerPreConnectEvent
+import com.velocitypowered.api.event.player.TabCompleteEvent
+import com.velocitypowered.api.proxy.Player
+import java.util.concurrent.TimeUnit
 
 class ChatListener(
     private val chattORE: ChattORE
@@ -33,6 +39,15 @@ class ChatListener(
 
     @Subscribe
     fun joinEvent(event: LoginEvent) {
+        val unreadCount = chattORE.database.getMessages(event.player.uniqueId).filter { !it.read }.size
+        if (unreadCount > 0)
+            chattORE.proxy.scheduler.buildTask(chattORE, Runnable {
+                event.player.sendMessage(chattORE.config[ChattORESpec.format.mailUnread].render(mapOf(
+                    "count" to "$unreadCount".toComponent()
+                )))
+            })
+                .delay(2L, TimeUnit.SECONDS)
+                .schedule()
         if (!chattORE.config[ChattORESpec.clearNicknameOnChange]) return
         val existingName = chattORE.database.uuidToUsernameCache[event.player.uniqueId] ?: return
         if (existingName == event.player.username) return
