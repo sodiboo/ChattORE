@@ -15,11 +15,11 @@ Because we want to have a chat system that actually wOREks for us.
 | `/mail read <mail ID>`                | `chattore.mail`                 | Read a mail message (Designed for usage with `/mailbox`) | No aliases                                |
 | `/me <message>`                       | `chattore.me`                   | Have a thought in chat                                   | No aliases                                |
 | `/message <player> <message>`         | `chattore.message`              | Send a message to a player                               | `/msg\|/vmsg\|/vmessage\|/whisper\|/tell` |
-| `/reply <message>`                    | `chattore.reply`                | Reply to a message                                       | No aliases                                |
+| `/reply <message>`                    | `chattore.message`              | Reply to a message                                       | No aliases                                |
 | `/profile info <player>`              | `chattore.profile`              | View a player's profile                                  | No aliases                                |
 | `/profile about <player>`             | `chattore.profile.about`        | Set your about                                           | No aliases                                |
 | `/profile setabout <player> <about>`  | `chattore.profile.about.others` | Set another player's about                               | No aliases                                |
-| `/nick <color>+`                      | `chattore.nick.color`           | Set your nickname with at least one color (up to three)  | No aliases                                |
+| `/nick <color>+`                      | `chattore.nick`                 | Set your nickname with at least one color (up to three)  | No aliases                                |
 | `/nick nick <player> <nickname>`      | `chattore.nick.others`          | Set a player's nickname                                  | No aliases                                |
 | `/nick remove <player>`               | `chattore.nick.remove`          | Remove a player's nickname                               | No aliases                                |
 | `/nick setgradient <player> <color>+` | `chattore.nick.setgradient`     | Set a gradient for a user                                | No aliases                                |

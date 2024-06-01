@@ -12,7 +12,7 @@ import com.velocitypowered.api.proxy.Player
 import java.util.*
 
 @CommandAlias("r|reply")
-@CommandPermission("chattore.reply")
+@CommandPermission("chattore.message")
 class Reply(
     private val config: Config,
     private val chattORE: ChattORE,
