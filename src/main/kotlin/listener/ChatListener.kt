@@ -1,11 +1,6 @@
 package chattore.listener
 
 import chattore.ChattORE
-import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.command.CommandExecuteEvent
-import com.velocitypowered.api.event.player.PlayerChatEvent
-import com.velocitypowered.api.event.player.TabCompleteEvent
-import com.velocitypowered.api.proxy.Player
 import chattore.entity.ChattORESpec
 import chattore.render
 import chattore.toComponent
