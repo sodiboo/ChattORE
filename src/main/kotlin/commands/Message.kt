@@ -48,7 +48,7 @@ fun sendMessage(
     errorTemplate: String
 ) {
     var statement = args.joinToString(" ")
-    if (!player.hasPermission("chattore.chat.obfuscate")) {
+    if (!player.hasPermission("chattore.chat.obfuscate") && statement.contains("&k")) {
         player.sendMessage(errorTemplate.render(mapOf(
             "message" to "You do not have permission to obfuscate text!".toComponent()
         )))
