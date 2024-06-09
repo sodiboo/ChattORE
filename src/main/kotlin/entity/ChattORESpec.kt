@@ -20,6 +20,7 @@ object ChattORESpec : ConfigSpec("") {
             )
         )
         val format by optional("`%prefix%` **%sender%**: %message%")
+        val chadId by optional(1234L)
     }
 
     object format : ConfigSpec() {
