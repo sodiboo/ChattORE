@@ -42,9 +42,9 @@ fun formatReplacement(key: String, tag: String): TextReplacementConfig =
         .build()
 
 fun urlReplacementConfig(fileTypeMap: Map<String, List<String>>): TextReplacementConfig = TextReplacementConfig.builder()
-    .match("""(http|https)://([\w_-]+(?:\.[\w_-]+)+)(\S+)?""")
+    .match("""<?((http|https)://([\w_-]+(?:\.[\w_-]+)+)([^\s'<>]+)?)>?""")
     .replacement{ result, _ ->
-        val link = URL(result.group(0))
+        val link = URL(result.group(1))
         var type = "link"
         var name = link.host
         if (link.file.isNotEmpty()) {
@@ -66,7 +66,7 @@ fun urlReplacementConfig(fileTypeMap: Map<String, List<String>>): TextReplacemen
             "TEXT" -> "\uD83D\uDCDD"
             else -> "\uD83D\uDCCE"
         }
-        ("<aqua><click:open_url:$link>" +
+        ("<aqua><click:open_url:'$link'>" +
         "<hover:show_text:'<aqua>$link'>" +
         "[$symbol $name]" +
         "</hover>" +
