@@ -89,7 +89,7 @@ class ChatListener(
     fun onChatEvent(event: PlayerChatEvent) {
         val pp = event.player
         pp.currentServer.ifPresent { server ->
-            chattORE.logger.info("${pp.username}: ${event.message}")
+            chattORE.logger.info("${pp.username} (${pp.uniqueId}): ${event.message}")
             var result = event.message
             if (event.message.contains("&k") && !pp.hasPermission("chattore.chat.obfuscate")) {
                 pp.sendMessage(chattORE.config[ChattORESpec.format.error].render(mapOf(
