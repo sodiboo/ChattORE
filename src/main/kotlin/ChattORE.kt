@@ -125,6 +125,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             commandCompletions.registerCompletion("uuidAndUsernameCache") {
                 database.uuidToUsernameCache.values + database.uuidToUsernameCache.keys.map { it.toString() }
             }
+            commandCompletions.registerCompletion("pridePresets") { pridePresets.keys }
         }
         proxy.eventManager.register(this, ChatListener(this))
     }

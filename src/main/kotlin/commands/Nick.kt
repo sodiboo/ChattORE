@@ -71,6 +71,31 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         player.sendMessage(response)
     }
 
+    @Subcommand("pride")
+    @CommandCompletion("@pridePresets")
+    fun pride(player: Player, flag: String) {
+        val colors = pridePresets[flag]
+            ?: throw ChattoreException("Unknown pride flag! Use /nick presets to see available flags.")
+        val rendered = setNicknameGradient(player.uniqueId, player.username, *colors)
+        val response = chattORE.config[ChattORESpec.format.chattore].render(
+            "Your nickname has been set to $rendered".miniMessageDeserialize()
+        )
+        player.sendMessage(response)
+    }
+
+    @Subcommand("presets")
+    fun presets(player: Player) {
+        var renderedPresets = ArrayList<String>()
+        for ((name, colors) in pridePresets) {
+            renderedPresets.add("<gradient:${colors.joinToString(':'.toString())}>$name<reset>")
+        }
+
+        val response = chattORE.config[ChattORESpec.format.chattore].render(
+            "Available pride presets: ${renderedPresets.joinToString(", ")}".miniMessageDeserialize()
+        )
+        player.sendMessage(response)
+    }
+
     @Subcommand("nick")
     @CommandPermission("chattore.nick.others")
     @CommandCompletion("@usernameCache")
