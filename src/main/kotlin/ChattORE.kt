@@ -54,7 +54,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     lateinit var luckPerms: LuckPerms
     lateinit var config: Config
     lateinit var database: Storage
-    lateinit var discordNetwork: DiscordApi
+    var discordNetwork: DiscordApi? = null
     val onlinePlayers: MutableSet<UUID> = Collections.synchronizedSet(mutableSetOf())
     private val replyMap: MutableMap<UUID, UUID> = hashMapOf()
     private var discordMap: Map<String, DiscordApi> = hashMapOf()
@@ -215,7 +215,8 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
     }
 
     fun broadcastPlayerConnection(message: String) {
-        discordNetwork.getTextChannelById(config[ChattORESpec.discord.channelId]).ifPresent {
+        val discord = discordNetwork ?: return
+        discord.getTextChannelById(config[ChattORESpec.discord.channelId])?.ifPresent {
             it.sendMessage(message)
         }
     }
