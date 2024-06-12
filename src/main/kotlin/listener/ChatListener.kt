@@ -46,6 +46,8 @@ class ChatListener(
         if (!chattORE.config[ChattORESpec.clearNicknameOnChange]) return
         val existingName = chattORE.database.uuidToUsernameCache[event.player.uniqueId] ?: return
         if (existingName == event.player.username) return
+        val nickname = chattORE.database.getNickname(event.player.uniqueId);
+        if (nickname?.contains("<username>") ?: false) return
         chattORE.database.removeNickname(event.player.uniqueId)
     }
 
