@@ -125,7 +125,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             commandCompletions.registerCompletion("uuidAndUsernameCache") {
                 database.uuidToUsernameCache.values + database.uuidToUsernameCache.keys.map { it.toString() }
             }
-            commandCompletions.registerCompletion("pridePresets") { pridePresets.keys }
+            commandCompletions.registerCompletion("nickPresets") { config[ChattORESpec.nicknamePresets].keys }
         }
         proxy.eventManager.register(this, ChatListener(this))
     }
@@ -225,7 +225,9 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         val luckUser = userManager.getUser(user) ?: return
         val name = this.database.getNickname(user) ?: this.proxy.getPlayer(user).get().username
         val player = this.proxy.getPlayer(user).get()
-        val sender = name.miniMessageDeserialize().hoverEvent(
+        val sender = name.render(mapOf(
+            "username" to Component.text(player.username)
+        )).hoverEvent(
             HoverEvent.showText("${player.username} | <i>Click for more</i>".miniMessageDeserialize())
         ).clickEvent(
             ClickEvent.runCommand("/playerprofile info ${player.username}")

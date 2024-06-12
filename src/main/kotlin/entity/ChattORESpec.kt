@@ -1,6 +1,7 @@
 package chattore.entity
 
 import com.uchuhimo.konf.ConfigSpec
+import chattore.pridePresets
 
 object ChattORESpec : ConfigSpec("") {
 
@@ -44,4 +45,6 @@ object ChattORESpec : ConfigSpec("") {
         val joinDiscord by optional("**<player> has joined the network**")
         val leaveDiscord by optional("**<player> has left the network**")
     }
+
+    val nicknamePresets by optional(pridePresets)
 }

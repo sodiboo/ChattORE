@@ -7,6 +7,7 @@ import co.aikar.commands.annotation.*
 import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.proxy.Player
 import java.util.*
+import net.kyori.adventure.text.Component
 
 // TODO: 8/23/2023 Add to autocompletes?
 val hexColorMap = mapOf(
@@ -71,27 +72,31 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         player.sendMessage(response)
     }
 
-    @Subcommand("pride")
-    @CommandCompletion("@pridePresets")
-    fun pride(player: Player, flag: String) {
-        val colors = pridePresets[flag]
-            ?: throw ChattoreException("Unknown pride flag! Use /nick presets to see available flags.")
-        val rendered = setNicknameGradient(player.uniqueId, player.username, *colors)
+    @Subcommand("preset")
+    @CommandCompletion("@nickPresets")
+    fun pride(player: Player, preset: String) {
+        val format = chattORE.config[ChattORESpec.nicknamePresets][preset]
+            ?: throw ChattoreException("Unknown preset! Use /nick presets to see available presets.")
+        val rendered = format.render(mapOf("username" to Component.text(player.username)));
+        chattORE.database.setNickname(player.uniqueId, format);
         val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Your nickname has been set to $rendered".miniMessageDeserialize()
+            "Your nickname has been set to <message>".render(rendered)
         )
         player.sendMessage(response)
     }
 
     @Subcommand("presets")
     fun presets(player: Player) {
-        var renderedPresets = ArrayList<String>()
-        for ((name, colors) in pridePresets) {
-            renderedPresets.add("<gradient:${colors.joinToString(':'.toString())}>$name<reset>")
+        var renderedPresets = ArrayList<Component>()
+        for ((name, colors) in chattORE.config[ChattORESpec.nicknamePresets]) {
+            val rendered = colors.render(mapOf("username" to Component.text(name)))
+            renderedPresets.add(rendered)
         }
 
+        val combined = renderedPresets.reduce { all, next -> "<all>, <next>".render(mapOf("all" to all, "next" to next )) }
+
         val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Available pride presets: ${renderedPresets.joinToString(", ")}".miniMessageDeserialize()
+            "Available pride presets: <message>".render(combined)
         )
         player.sendMessage(response)
     }
@@ -103,13 +108,12 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         val targetUuid = chattORE.fetchUuid(target)
             ?: throw ChattoreException("Invalid user!")
         val nickname = if (nick.contains("&")) {
-            nick.legacyDeserialize()
+            nick.legacyDeserialize().miniMessageSerialize()
         } else {
-            nick.miniMessageDeserialize()
+            nick
         }
-        val rendered = nickname.miniMessageSerialize()
-        chattORE.database.setNickname(targetUuid, rendered)
-        sendPlayerNotifications(target, commandSource, targetUuid, rendered)
+        chattORE.database.setNickname(targetUuid, nickname)
+        sendPlayerNotifications(target, commandSource, targetUuid, nickname)
     }
 
     @Subcommand("remove")
@@ -138,13 +142,17 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
 
     private fun sendPlayerNotifications(target: String, executor: CommandSource, targetUuid: UUID, rendered: String) {
         val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Set nickname for $target as $rendered.".miniMessageDeserialize()
+            "Set nickname for $target as $rendered.".render(mapOf(
+                "username" to Component.text(target)
+            ))
         )
         executor.sendMessage(response)
         chattORE.proxy.getPlayer(targetUuid).ifPresent {
             it.sendMessage(
                 chattORE.config[ChattORESpec.format.chattore].render(
-                    "Your nickname has been set to $rendered".miniMessageDeserialize()
+                    "Your nickname has been set to $rendered".render(mapOf(
+                        "username" to Component.text(target)
+                    ))
                 )
             )
         }

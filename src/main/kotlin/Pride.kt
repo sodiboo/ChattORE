@@ -3,11 +3,12 @@
 
 package chattore;
 
+import chattore.prideColors
+
 fun weighted(vararg colors: Pair<String, Int>): Array<String> =
         colors.flatMap { (value, weight) -> List(weight) { value } }.toTypedArray()
 
-
-val pridePresets = mapOf(
+val prideColors = mapOf(
     "rainbow" to arrayOf(
         "#E50000",
         "#FF8D00",
@@ -518,4 +519,6 @@ val pridePresets = mapOf(
         "#243897",
         "#6F0A82",
     ),
-);
+)
+
+val pridePresets = prideColors.mapValues { (_, colors) -> "<gradient:${colors.joinToString(':'.toString())}><username></gradient>" }.toSortedMap()
