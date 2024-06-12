@@ -58,16 +58,18 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         // Note: worth having a timeout to prevent people from changing too frequently.
         if (colors.isEmpty()) throw ChattoreException("No colors provided! Please provide 1 to 3 colors!")
         val rendered = if (colors.size == 1) {
-            val code = "<${colors.first().validateColor()}>"
-            val nickname = "${code}${player.username}<reset>"
+            val color = colors.first().validateColor();
+            val nickname = "<color:$color><username></color:$color>"
             chattORE.database.setNickname(player.uniqueId, nickname)
             nickname
         } else {
             if (colors.size > 3) throw ChattoreException("Too many colors!")
-            setNicknameGradient(player.uniqueId, player.username, *colors)
+            setNicknameGradient(player.uniqueId, *colors)
         }
         val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Your nickname has been set to $rendered".miniMessageDeserialize()
+            "Your nickname has been set to $rendered".render(mapOf(
+                "username" to Component.text(player.username)
+            ))
         )
         player.sendMessage(response)
     }
@@ -158,10 +160,9 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         }
     }
 
-    private fun setNicknameGradient(uniqueId: UUID, username: String, vararg colors: String): String {
-        val codes = colors.map { it.validateColor() }
-        val tag = "<gradient:${codes.joinToString(':'.toString())}>"
-        val nickname = "$tag$username<reset>"
+    private fun setNicknameGradient(uniqueId: UUID, vararg colors: String): String {
+        val codes = colors.map { it.validateColor() }.joinToString(":");
+        val nickname = "<gradient:$codes><username></gradient>"
         chattORE.database.setNickname(uniqueId, nickname)
         return nickname
     }
