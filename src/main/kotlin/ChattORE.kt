@@ -47,7 +47,7 @@ private const val VERSION = "0.1.0-SNAPSHOT"
     version = VERSION,
     url = "https://openredstone.org",
     description = "Because we want to have a chat system that actually wOREks for us.",
-    authors = ["Nickster258", "PaukkuPalikka", "StackDoubleFlow"],
+    authors = ["Nickster258", "PaukkuPalikka", "StackDoubleFlow", "sodiboo"],
     dependencies = [Dependency(id = "luckperms")]
 )
 class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @DataDirectory dataFolder: Path) {
