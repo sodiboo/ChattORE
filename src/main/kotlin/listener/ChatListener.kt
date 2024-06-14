@@ -34,6 +34,7 @@ class ChatListener(
 
     @Subscribe
     fun joinEvent(event: LoginEvent) {
+        joinMessage(event)
         val unreadCount = chattORE.database.getMessages(event.player.uniqueId).filter { !it.read }.size
         if (unreadCount > 0)
             chattORE.proxy.scheduler.buildTask(chattORE, Runnable {
@@ -51,10 +52,7 @@ class ChatListener(
         chattORE.database.removeNickname(event.player.uniqueId)
     }
 
-    @Subscribe
-    fun joinMessage(event: ServerPostConnectEvent) {
-        if (event.player.uniqueId in chattORE.onlinePlayers) return
-        chattORE.onlinePlayers.add(event.player.uniqueId)
+    fun joinMessage(event: LoginEvent) {
         val username = event.player.username
         chattORE.broadcast(
             chattORE.config[ChattORESpec.format.join].render(mapOf(
@@ -71,8 +69,7 @@ class ChatListener(
 
     @Subscribe
     fun leaveMessage(event: DisconnectEvent) {
-        if (event.player.uniqueId !in chattORE.onlinePlayers) return
-        chattORE.onlinePlayers.remove(event.player.uniqueId)
+        if (event.loginStatus != DisconnectEvent.LoginStatus.SUCCESSFUL_LOGIN) return
         val username = event.player.username
         chattORE.broadcast(
             chattORE.config[ChattORESpec.format.leave].render(mapOf(
