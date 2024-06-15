@@ -8,6 +8,7 @@ import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.proxy.Player
 import java.util.*
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.JoinConfiguration
 
 // TODO: 8/23/2023 Add to autocompletes?
 val hexColorMap = mapOf(
@@ -95,15 +96,10 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
             renderedPresets.add(rendered)
         }
 
-        val combined = renderedPresets.reduce { all, next ->
-            "<all>, <next>".render(mapOf(
-                "all" to all,
-                "next" to next,
-            ))
-        }
-
         val response = chattORE.config[ChattORESpec.format.chattore].render(
-            "Available pride presets: <message>".render(combined)
+            "Available presets: <message>".render(
+                Component.join(JoinConfiguration.commas(true), renderedPresets)
+            )
         )
         player.sendMessage(response)
     }
