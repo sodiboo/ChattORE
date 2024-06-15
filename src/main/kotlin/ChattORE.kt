@@ -232,7 +232,9 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         ).clickEvent(
             ClickEvent.runCommand("/playerprofile info ${player.username}")
         )
-        val prefix = luckUser.cachedData.metaData.prefix ?: luckUser.cachedData.metaData.primaryGroup?.replaceFirstChar(Char::uppercaseChar) ?: "No Group"
+        val prefix = luckUser.cachedData.metaData.prefix
+            ?: luckUser.primaryGroup.replaceFirstChar(Char::uppercaseChar)
+
         broadcast(
             config[ChattORESpec.format.global].render(
                 mapOf(

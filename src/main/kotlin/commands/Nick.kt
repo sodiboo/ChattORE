@@ -95,7 +95,12 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
             renderedPresets.add(rendered)
         }
 
-        val combined = renderedPresets.reduce { all, next -> "<all>, <next>".render(mapOf("all" to all, "next" to next )) }
+        val combined = renderedPresets.reduce { all, next ->
+            "<all>, <next>".render(mapOf(
+                "all" to all,
+                "next" to next,
+            ))
+        }
 
         val response = chattORE.config[ChattORESpec.format.chattore].render(
             "Available pride presets: <message>".render(combined)

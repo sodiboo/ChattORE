@@ -521,4 +521,6 @@ val prideColors = mapOf(
     ),
 )
 
-val pridePresets = prideColors.mapValues { (_, colors) -> "<gradient:${colors.joinToString(':'.toString())}><username></gradient>" }.toSortedMap()
+val pridePresets = prideColors.mapValues { (_, colors) ->
+        "<gradient:${colors.joinToString(':'.toString())}><username></gradient>"
+    }.toSortedMap()
