@@ -121,6 +121,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             commandCompletions.registerCompletion("bool") { listOf("true", "false")}
             commandCompletions.registerCompletion("emojis") { emojis.keys }
             commandCompletions.registerCompletion("usernameCache") { database.uuidToUsernameCache.values }
+            commandCompletions.registerCompletion("username") { listOf(it.player.username) }
             commandCompletions.registerCompletion("uuidAndUsernameCache") {
                 database.uuidToUsernameCache.values + database.uuidToUsernameCache.keys.map { it.toString() }
             }

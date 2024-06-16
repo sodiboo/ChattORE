@@ -4,11 +4,14 @@ import chattore.*
 import chattore.entity.ChattORESpec
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
+import co.aikar.commands.annotation.Optional
 import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.proxy.Player
 import java.util.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.JoinConfiguration
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.event.HoverEvent
 
 // TODO: 8/23/2023 Add to autocompletes?
 val hexColorMap = mapOf(
@@ -89,10 +92,33 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
     }
 
     @Subcommand("presets")
-    fun presets(player: Player) {
+    @CommandCompletion("@username")
+    fun presets(player: Player, @Optional shownText: String?) {
         var renderedPresets = ArrayList<Component>()
-        for ((name, colors) in chattORE.config[ChattORESpec.nicknamePresets]) {
-            val rendered = colors.render(mapOf("username" to Component.text(name)))
+        for ((presetName, preset) in chattORE.config[ChattORESpec.nicknamePresets]) {
+            val applyPreset: (String) -> Component = {
+                preset.render(mapOf(
+                    "username" to Component.text(it)
+                ))
+            }
+            val rendered = if (shownText == null) {
+                // Primarily show the preset name, else a preview of the nickname.
+                applyPreset(presetName).hoverEvent(
+                    HoverEvent.showText(
+                        "Click to apply <message>".render(applyPreset(player.username))
+                    )
+                )
+            } else {
+                // Primarily show the entered text, else the preset name.
+                // Also, we're suggesting the username as the autocompleted $shownText.
+                applyPreset(shownText).hoverEvent(
+                    HoverEvent.showText(
+                        "Click to apply <message> preset".render(applyPreset(presetName))
+                    )
+                )
+            }.clickEvent(
+                ClickEvent.runCommand("/nick preset $presetName")
+            )
             renderedPresets.add(rendered)
         }
 
