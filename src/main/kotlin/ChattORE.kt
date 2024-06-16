@@ -139,7 +139,10 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
             mapOf(
                 "about" to (this.database.getAbout(user.uniqueId) ?: "no about yet :(").toComponent(),
                 "ign" to ign.toComponent(),
-                "nickname" to (this.database.getNickname(user.uniqueId) ?: "No nickname set").miniMessageDeserialize(),
+                "nickname" to (this.database.getNickname(user.uniqueId) ?: "No nickname set")
+                    .render(mapOf(
+                        "username" to ign.toComponent(),
+                    )),
                 "rank" to group.legacyDeserialize(),
             )
         )
