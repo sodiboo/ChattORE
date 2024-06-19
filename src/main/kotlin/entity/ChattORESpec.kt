@@ -27,6 +27,8 @@ object ChattORESpec : ConfigSpec("") {
     object format : ConfigSpec() {
         val global by optional("<prefix> <gray>|</gray> <yellow><sender></yellow><gray>:</gray> <message>")
         val discord by optional("<dark_aqua>Discord</dark_aqua> <gray>|</gray> <dark_purple><sender></dark_purple><gray>:</gray> <message>")
+        val discordReply by optional("<dark_aqua>Discord</dark_aqua> <gray>|</gray> (reply) <dark_purple><sender></dark_purple><gray>:</gray> <message>")
+        val newlinePrefix by optional("\u2937 ")
         val mailReceived by optional("<gold>[</gold><red>From <sender></red><gold>]</gold> <message>")
         val mailSent by optional("<gold>[</gold><red>To <recipient></red><gold>]</gold> <message>")
         val mailUnread by optional("<yellow>You have <red><count></red> unread message(s)! <gold><b><hover:show_text:'View your mailbox'><click:run_command:'/mail mailbox'>Click here to view</click></hover></b></gold>.")

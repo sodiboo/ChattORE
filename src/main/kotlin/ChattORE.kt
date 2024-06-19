@@ -242,7 +242,7 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         broadcast(
             config[ChattORESpec.format.global].render(
                 mapOf(
-                    "message" to message.prepareChatMessage(chatReplacements),
+                    "message" to message.prepareChatMessage(chatReplacements, config[ChattORESpec.format.newlinePrefix]),
                     "sender" to sender,
                     "prefix" to prefix.legacyDeserialize()
                 )
@@ -264,12 +264,18 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         discordMessage.send(channel)
     }
 
-    fun broadcastDiscordMessage(sender: String, message: String) {
+    fun broadcastDiscordMessage(roleColor: String?, sender: String, message: String, isReply: Boolean) {
+        val format = if (isReply)
+            config[ChattORESpec.format.discordReply]
+        else
+            config[ChattORESpec.format.discord]
         broadcast(
-            config[ChattORESpec.format.discord].render(
+            format.render(
                 mapOf(
-                    "sender" to sender.toComponent(),
-                    "message" to message.prepareChatMessage(chatReplacements)
+                    "sender" to (roleColor?.let {
+                        "<color:$it><name></color>".render(mapOf("name" to sender.toComponent()))
+                    } ?: sender.toComponent()),
+                    "message" to message.prepareChatMessage(chatReplacements, config[ChattORESpec.format.newlinePrefix])
                 )
             )
         )

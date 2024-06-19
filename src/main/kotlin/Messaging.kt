@@ -74,8 +74,14 @@ fun urlReplacementConfig(fileTypeMap: Map<String, List<String>>): TextReplacemen
     }
     .build()
 
-fun String.prepareChatMessage(replacements: List<TextReplacementConfig>): Component {
-    var result: Component = this.legacyDeserialize()
+fun String.prepareChatMessage(replacements: List<TextReplacementConfig>, newlinePrefix: String): Component {
+    var result: Component = this
+        .legacyDeserialize()
+        .miniMessageSerialize()
+        .replace("\n", "<newline>")
+        .render(mapOf(
+            "newline" to "\n$newlinePrefix".miniMessageDeserialize()
+        ))
     replacements.forEach { replacement ->
         result = result.replaceText(replacement)
     }
