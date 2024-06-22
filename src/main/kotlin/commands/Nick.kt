@@ -79,6 +79,7 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
     }
 
     @Subcommand("preset")
+    @CommandPermission("chattore.nick.preset")
     @CommandCompletion("@nickPresets")
     fun pride(player: Player, preset: String) {
         val format = chattORE.config[ChattORESpec.nicknamePresets][preset]
@@ -92,6 +93,7 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
     }
 
     @Subcommand("presets")
+    @CommandPermission("chattore.nick.preset")
     @CommandCompletion("@username")
     fun presets(player: Player, @Optional shownText: String?) {
         var renderedPresets = ArrayList<Component>()
