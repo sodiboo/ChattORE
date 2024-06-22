@@ -25,7 +25,7 @@ object ChattORESpec : ConfigSpec("") {
     }
 
     object format : ConfigSpec() {
-        val global by optional("<prefix> <gray>|</gray> <yellow><sender></yellow><gray>:</gray> <message>")
+        val global by optional("<prefix> <gray>|</gray> <hover:show_text:'<username> | <i>Click for more</i>'><yellow><sender></yellow></hover><gray>:</gray> <message>")
         val discord by optional("<dark_aqua>Discord</dark_aqua> <gray>|</gray> <dark_purple><sender></dark_purple><gray>:</gray> <message>")
         val mailReceived by optional("<gold>[</gold><red>From <sender></red><gold>]</gold> <message>")
         val mailSent by optional("<gold>[</gold><red>To <recipient></red><gold>]</gold> <message>")

@@ -230,12 +230,11 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
         val name = this.database.getNickname(user) ?: this.proxy.getPlayer(user).get().username
         val player = this.proxy.getPlayer(user).get()
         val sender = name.render(mapOf(
-            "username" to Component.text(player.username)
-        )).hoverEvent(
-            HoverEvent.showText("${player.username} | <i>Click for more</i>".miniMessageDeserialize())
-        ).clickEvent(
-            ClickEvent.runCommand("/playerprofile info ${player.username}")
-        )
+            "username" to player.username.toComponent()
+        )).let {
+            "<click:run_command:'/playerprofile info ${player.username}'><message></click>".render(it)
+        };
+
         val prefix = luckUser.cachedData.metaData.prefix
             ?: luckUser.primaryGroup.replaceFirstChar(Char::uppercaseChar)
 
@@ -244,7 +243,8 @@ class ChattORE @Inject constructor(val proxy: ProxyServer, val logger: Logger, @
                 mapOf(
                     "message" to message.prepareChatMessage(chatReplacements),
                     "sender" to sender,
-                    "prefix" to prefix.legacyDeserialize()
+                    "username" to Component.text(player.username),
+                    "prefix" to prefix.legacyDeserialize(),
                 )
             )
         )

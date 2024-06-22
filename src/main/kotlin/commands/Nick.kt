@@ -105,22 +105,18 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
             }
             val rendered = if (shownText == null) {
                 // Primarily show the preset name, else a preview of the nickname.
-                applyPreset(presetName).hoverEvent(
-                    HoverEvent.showText(
-                        "Click to apply <message>".render(applyPreset(player.username))
-                    )
-                )
+                "<hover:show_text:'Click to apply <username>'><preset></hover>"
             } else {
                 // Primarily show the entered text, else the preset name.
                 // Also, we're suggesting the username as the autocompleted $shownText.
-                applyPreset(shownText).hoverEvent(
-                    HoverEvent.showText(
-                        "Click to apply <message> preset".render(applyPreset(presetName))
-                    )
-                )
-            }.clickEvent(
-                ClickEvent.runCommand("/nick preset $presetName")
-            )
+                "<hover:show_text:'Click to apply <preset> preset'><custom></hover>"
+            }.render(mapOf(
+                "username" to applyPreset(player.username),
+                "preset" to applyPreset(presetName),
+                "custom" to applyPreset(shownText ?: "")
+            )).let {
+                "<click:run_command:'/nick preset $presetName'><message></click>".render(it)
+            }
             renderedPresets.add(rendered)
         }
 
