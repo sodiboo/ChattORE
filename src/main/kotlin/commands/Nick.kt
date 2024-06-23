@@ -13,9 +13,8 @@ import net.kyori.adventure.text.JoinConfiguration
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
 
-// TODO: 8/23/2023 Add to autocompletes?
 val hexColorMap = mapOf(
-    "O" to Pair("#000000", "black"),
+    "0" to Pair("#000000", "black"),
     "1" to Pair("#00AA00", "dark_blue"),
     "2" to Pair("#00AA00", "dark_green"),
     "3" to Pair("#00AAAA", "dark_aqua"),
@@ -57,8 +56,10 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
 
     // TODO: 8/23/2023 Add timeout map
 
-    @Default
-    fun set(player: Player, vararg colors: String) {
+    @Subcommand("gradient")
+    @CommandPermission("chattore.nick.gradient")
+    @CommandCompletion("@colors")
+    fun gradient(player: Player, vararg colors: String) {
         // Note: worth having a timeout to prevent people from changing too frequently.
         if (colors.isEmpty()) throw ChattoreException("No colors provided! Please provide 1 to 3 colors!")
         val rendered = if (colors.size == 1) {
@@ -128,10 +129,10 @@ class Nick(private val chattORE: ChattORE) : BaseCommand() {
         player.sendMessage(response)
     }
 
-    @Subcommand("nick")
+    @Subcommand("set")
     @CommandPermission("chattore.nick.others")
     @CommandCompletion("@usernameCache")
-    fun nick(commandSource: CommandSource, @Single target: String, @Single nick: String) {
+    fun set(commandSource: CommandSource, @Single target: String, @Single nick: String) {
         val targetUuid = chattORE.fetchUuid(target)
             ?: throw ChattoreException("Invalid user!")
         val nickname = if (nick.contains("&")) {
